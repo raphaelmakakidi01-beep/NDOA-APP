@@ -3,6 +3,12 @@ export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 export const DEMO = !SUPABASE_URL || !SUPABASE_ANON_KEY;
 
+/**
+ * Confirmation de l’e-mail à l’inscription : « lien » (e-mail par défaut de Supabase, lien cliquable)
+ * ou « code » (code à 6 chiffres, nécessite un SMTP personnalisé pour modifier le modèle d’e-mail).
+ */
+export const EMAIL_CONFIRMATION: "lien" | "code" = process.env.NEXT_PUBLIC_EMAIL_CONFIRMATION === "code" ? "code" : "lien";
+
 /** Code OTP accepté en mode démo */
 export const DEMO_OTP = "123456";
 

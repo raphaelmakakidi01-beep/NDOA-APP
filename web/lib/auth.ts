@@ -35,10 +35,14 @@ function fr(message: string) {
   if (m.includes("invalid login")) return "Identifiant ou mot de passe incorrect.";
   if (m.includes("expired") || (m.includes("invalid") && m.includes("otp"))) return "Ce code est incorrect ou a expiré.";
   if (m.includes("rate limit") || m.includes("too many")) return "Trop de tentatives. Patientez une minute avant de réessayer.";
+  if (m.includes("not authorized") || m.includes("sending confirmation"))
+    return "L’e-mail de confirmation n’a pas pu être envoyé à cette adresse. Réessayez plus tard ou inscrivez-vous par téléphone.";
   if (m.includes("password")) return "Le mot de passe ne respecte pas les règles demandées.";
   return "Une erreur est survenue. Vérifiez votre connexion et réessayez.";
 }
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** Lien de confirmation de l’e-mail : retour sur /auth/callback, puis création de la vitrine */
+const emailRedirectTo = () => `${location.origin}/auth/callback?source=email&suite=${encodeURIComponent("/onboarding/activite")}`;
 
 export async function signUp(input: { method: Method; email?: string; phone?: string; password: string; fullName: string; channel: Channel }) {
   const pending: Pending = { method: input.method, email: input.email, phone: input.phone, fullName: input.fullName, channel: input.channel, purpose: "signup" };
@@ -50,7 +54,7 @@ export async function signUp(input: { method: Method; email?: string; phone?: st
   }
   const { error } =
     input.method === "email"
-      ? await sb.auth.signUp({ email: input.email!, password: input.password, options: { data: { full_name: input.fullName } } })
+      ? await sb.auth.signUp({ email: input.email!, password: input.password, options: { data: { full_name: input.fullName }, emailRedirectTo: emailRedirectTo() } })
       : await sb.auth.signUp({ phone: input.phone!, password: input.password, options: { data: { full_name: input.fullName }, channel: input.channel } });
   if (error) return { ok: false as const, error: fr(error.message) };
   write(K_PENDING, pending);
@@ -101,9 +105,18 @@ export async function resendOtp(channel: Channel) {
   if (!sb) { await wait(500); return { ok: true as const }; }
   const { error } =
     p.method === "email"
-      ? await sb.auth.resend({ type: "signup", email: p.email! })
+      ? await sb.auth.resend({ type: "signup", email: p.email!, options: { emailRedirectTo: emailRedirectTo() } })
       : await sb.auth.resend({ type: "sms", phone: p.phone!, options: { channel } as never });
   return error ? { ok: false as const, error: fr(error.message) } : { ok: true as const };
+}
+
+/** Vrai si une session existe (ex. : e-mail confirmé via le lien dans un autre onglet) ; efface l’inscription en attente */
+export async function confirmedBySession() {
+  const sb = await loadSupabase();
+  if (!sb) return false;
+  const { data } = await sb.auth.getUser();
+  if (data.user?.email_confirmed_at) { write(K_PENDING, null); return true; }
+  return false;
 }
 
 export async function signInWithGoogle(next = "/onboarding") {

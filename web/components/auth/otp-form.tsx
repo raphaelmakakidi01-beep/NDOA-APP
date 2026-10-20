@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useAnimationControls } from "motion/react";
-import { MessageCircle, MessageSquareText, Mail } from "lucide-react";
+import { MessageCircle, MessageSquareText, Mail, MailCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DemoBanner } from "@/components/brand";
-import { getPending, resendOtp, verifyOtp, type Channel, type Pending } from "@/lib/auth";
+import { confirmedBySession, getPending, resendOtp, verifyOtp, type Channel, type Pending } from "@/lib/auth";
+import { DEMO, EMAIL_CONFIRMATION } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
 const LEN = 6;
@@ -75,10 +76,12 @@ export function OtpForm() {
     if (!r.ok) { toast.error(r.error); return; }
     setPending((p) => (p ? { ...p, channel } : p));
     setCooldown(30);
-    toast.success(channel === "whatsapp" ? "Nouveau code envoyé sur WhatsApp" : pending?.method === "email" ? "Nouveau code envoyé par e-mail" : "Nouveau code envoyé par SMS");
+    toast.success(channel === "whatsapp" ? "Nouveau code envoyé sur WhatsApp" : pending?.method === "email" ? (EMAIL_CONFIRMATION === "lien" && !DEMO ? "Nouvel e-mail envoyé" : "Nouveau code envoyé par e-mail") : "Nouveau code envoyé par SMS");
   }
 
   if (!pending) return <div className="skeleton h-80 rounded-3xl" aria-label="Chargement" />;
+  if (pending.method === "email" && EMAIL_CONFIRMATION === "lien" && !DEMO)
+    return <EmailLinkWait pending={pending} cooldown={cooldown} onResend={() => resend("sms")} />;
   const via = pending.method === "email" ? "par e-mail" : pending.channel === "whatsapp" ? "sur WhatsApp" : "par SMS";
   const Icon = pending.method === "email" ? Mail : pending.channel === "whatsapp" ? MessageCircle : MessageSquareText;
 
@@ -129,6 +132,72 @@ export function OtpForm() {
           <Button variant="outline" size="sm" className="w-fit" onClick={() => resend("sms")}><Mail aria-hidden />Renvoyer l’e-mail</Button>
         )}
         <Link href="/inscription" className="w-fit font-semibold text-gold-ink underline-offset-4 hover:underline">Modifier mon numéro ou mon e-mail</Link>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Inscription par e-mail sans SMTP personnalisé : Supabase envoie un lien de confirmation.
+ * Le lien ouvre /auth/callback (session + vitrine) ; cet écran détecte aussi la confirmation
+ * faite dans un autre onglet du même navigateur.
+ */
+function EmailLinkWait({ pending, cooldown, onResend }: { pending: Pending; cooldown: number; onResend: () => void }) {
+  const router = useRouter();
+  const [checking, setChecking] = useState(false);
+  const [notYet, setNotYet] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    const check = async () => {
+      if (alive && (await confirmedBySession())) {
+        toast.success("Adresse confirmée", { description: "Créons maintenant votre vitrine." });
+        router.push("/onboarding/activite");
+      }
+    };
+    const t = setInterval(check, 5000);
+    window.addEventListener("focus", check);
+    return () => { alive = false; clearInterval(t); window.removeEventListener("focus", check); };
+  }, [router]);
+
+  async function manualCheck() {
+    setChecking(true);
+    const ok = await confirmedBySession();
+    setChecking(false);
+    if (ok) router.push("/onboarding/activite");
+    else setNotYet(true);
+  }
+
+  return (
+    <div className="grid gap-6">
+      <div>
+        <span className="mb-5 grid size-14 place-items-center rounded-2xl bg-gold/15 text-gold-ink"><MailCheck className="size-6" aria-hidden /></span>
+        <h1 className="font-display text-[2.4rem] leading-[1.02]">Confirmez votre <em className="text-gold-ink">adresse</em></h1>
+        <p className="mt-2 text-[15px] text-muted">
+          Nous avons envoyé un e-mail à <b className="text-text">{mask(pending)}</b>. Ouvrez-le et cliquez sur le lien de confirmation.
+        </p>
+      </div>
+
+      <ol className="grid gap-2 rounded-2xl bg-surface-2 p-4 text-sm">
+        <li>1. L’e-mail s’intitule « Confirm your email address » (vérifiez aussi les indésirables).</li>
+        <li>2. Ouvrez le lien <b>sur cet appareil, dans ce navigateur</b> : vous arriverez directement sur votre vitrine.</li>
+        <li>3. Ouvert ailleurs ? Votre adresse sera quand même confirmée : connectez-vous ensuite.</li>
+      </ol>
+
+      <div className="grid gap-2">
+        <Button size="lg" className="w-full" loading={checking} onClick={manualCheck}>J’ai confirmé mon adresse</Button>
+        <p role="status" className="min-h-5 text-[13px] text-muted">{notYet ? "Pas encore confirmée : cliquez sur le lien reçu, puis réessayez." : ""}</p>
+      </div>
+
+      <div className="grid gap-3 rounded-2xl border border-line p-4 text-sm">
+        <p className="text-muted">Vous n’avez rien reçu ?</p>
+        {cooldown > 0 ? (
+          <p aria-live="polite">Nouvel envoi possible dans <b className="tabular-nums">{cooldown} s</b></p>
+        ) : (
+          <Button variant="outline" size="sm" className="w-fit" onClick={onResend}><Mail aria-hidden />Renvoyer l’e-mail</Button>
+        )}
+        <Link href="/connexion" className="w-fit font-semibold text-gold-ink underline-offset-4 hover:underline">J’ai déjà confirmé ailleurs : me connecter</Link>
+        <Link href="/inscription" className="w-fit font-semibold text-gold-ink underline-offset-4 hover:underline">Modifier mon e-mail</Link>
       </div>
     </div>
   );

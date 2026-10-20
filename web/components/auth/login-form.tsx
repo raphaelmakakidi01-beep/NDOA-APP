@@ -22,11 +22,17 @@ function normalizeIdentifier(v: string) {
 }
 
 /** Bandeau d’erreur OAuth : seul composant qui lit l’URL, pour que le formulaire reste pré-rendu en HTML */
+const AUTH_ERRORS: Record<string, string> = {
+  oauth: "La connexion Google a échoué. Réessayez ou utilisez votre mot de passe.",
+  lien: "Ce lien de confirmation a expiré ou a déjà été utilisé. Connectez-vous : si votre adresse n’est pas encore confirmée, recommencez l’inscription pour recevoir un nouveau lien.",
+};
+
 function OAuthError() {
   const params = useSearchParams();
-  return params.get("erreur") === "oauth" ? (
-    <p role="alert" className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">La connexion Google a échoué. Réessayez ou utilisez votre mot de passe.</p>
-  ) : null;
+  if (params.get("confirme") === "1")
+    return <p role="status" className="rounded-xl border border-success/40 bg-success/10 px-4 py-3 text-sm text-success">Adresse e-mail confirmée. Connectez-vous pour créer votre vitrine.</p>;
+  const msg = AUTH_ERRORS[params.get("erreur") ?? ""];
+  return msg ? <p role="alert" className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">{msg}</p> : null;
 }
 
 const nextFromUrl = () => safeNext(new URLSearchParams(location.search).get("suite"));
