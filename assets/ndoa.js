@@ -11,8 +11,8 @@ window.NDOA = (() => {
   const cfg = {
     SITE_URL: local ? location.origin : 'https://ndoa.cd',
     PRO_URL: local ? 'http://localhost:3000' : 'https://pro.ndoa.cd',
-    SUPABASE_URL: '',       // ex. https://xxxx.supabase.co
-    SUPABASE_ANON_KEY: '',  // clé publique « anon »
+    SUPABASE_URL: 'https://ekjfvoqlguxflpxvnqjj.supabase.co',
+    SUPABASE_ANON_KEY: 'sb_publishable_rY75WwZGJGEJvNFPQoToMg_F-OLXvl7',  // clé publique (protégée par RLS)
   };
   const live = !!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY);
 
