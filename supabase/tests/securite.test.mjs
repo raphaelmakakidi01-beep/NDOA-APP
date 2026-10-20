@@ -175,5 +175,48 @@ await as(null, "anon", async () => {
   ok("Calendrier public : statut visible, note privée masquée", r.rows.length === 1 && !("note" in r.rows[0]));
 });
 
+// Balayage de toutes les tables liées à une vitrine : lecture et écriture par un autre compte
+const tables = (await db.query(`select table_name t from information_schema.columns
+  where table_schema = 'public' and column_name = 'vendor_id'
+    and table_name in (select tablename from pg_tables where schemaname = 'public') order by 1`)).rows.map((r) => r.t);
+// Données publiques d'une vitrine publiée (affichées sur le profil)
+const PUBLIC_OK = new Set(["albums", "media", "packages", "package_options", "reviews", "stories", "vendor_categories", "vendor_languages", "vendor_zones", "faqs", "vendor_socials"]);
+const leaks = [], writes = [];
+await as(X, "authenticated", async () => {
+  for (const t of tables) {
+    const n = (await db.query(`select count(*)::int n from ${t} where vendor_id = '${vid}'`)).rows[0].n;
+    if (n && !PUBLIC_OK.has(t)) leaks.push(`${t}:${n}`);
+    try { const u = await db.query(`update ${t} set vendor_id = vendor_id where vendor_id = '${vid}'`); if (u.affectedRows) writes.push(t); }
+    catch { /* refus = attendu */ }
+    try { const d = await db.query(`delete from ${t} where vendor_id = '${vid}'`); if (d.affectedRows) writes.push(`${t} (suppression)`); }
+    catch { /* refus = attendu */ }
+  }
+});
+ok(`RLS : un autre prestataire ne lit aucune donnée privée (${tables.length} tables)`, !leaks.length, leaks.join(" "));
+ok(`RLS : un autre prestataire ne modifie ni ne supprime rien (${tables.length} tables)`, !writes.length, writes.join(" "));
+let draft;
+await as(X, "authenticated", async () => {
+  draft = (await db.query(`insert into vendors (owner_id, slug, name, city) values ('${X}', 'brouillon-x', 'Brouillon X', 'Kinshasa') returning id`)).rows[0].id;
+});
+await as(null, "anon", async () => {
+  const r = await db.query(`select slug from vendors where id in ('${vid}', '${draft}')`);
+  ok("RLS : profil publié lisible par tous, brouillon invisible", r.rows.length === 1 && r.rows[0].slug === "studio-test", JSON.stringify(r.rows));
+});
+await as(O, "authenticated", async () => {
+  const r = await db.query(`select count(*)::int n from vendors where id = '${draft}'`);
+  ok("RLS : le brouillon d'un autre prestataire est invisible", r.rows[0].n === 0);
+});
+
+// Uploads : formats et taille contrôlés côté serveur
+await as(null, "service_role", () => db.exec(`insert into storage.objects (bucket_id, name, metadata) values
+  ('vendor-media', '${vid}/videos/c.mov', '{"mimetype":"video/quicktime","size":5000}'),
+  ('vendor-media', '${vid}/photos/d.avif', '{"mimetype":"image/avif","size":5000}'),
+  ('vendor-media', '${vid}/photos/e.webp', '{"mimetype":"image/webp","size":9000000}')`));
+await as(E, "authenticated", () => expectError("Uploads : vidéo MOV refusée (MP4 uniquement)", `insert into media (vendor_id, kind, storage_path, size_bytes, mime_type) values ('${vid}', 'video', '${vid}/videos/c.mov', 10, 'video/mp4')`, "MEDIA_TYPE_MISMATCH"));
+await as(E, "authenticated", () => expectError("Uploads : photo AVIF refusée", `insert into media (vendor_id, kind, storage_path, size_bytes, mime_type) values ('${vid}', 'photo', '${vid}/photos/d.avif', 10, 'image/webp')`, "MEDIA_TYPE_MISMATCH"));
+await as(E, "authenticated", () => expectError("Uploads : photo non compressée (> 5 Mo) refusée", `insert into media (vendor_id, kind, storage_path, size_bytes, mime_type) values ('${vid}', 'photo', '${vid}/photos/e.webp', 10, 'image/webp')`, "FILE_TOO_LARGE"));
+const bucket = (await db.query(`select allowed_mime_types a from storage.buckets where id = 'vendor-media'`)).rows[0].a;
+ok("Uploads : le bucket n'accepte que JPEG, PNG, WebP et MP4", JSON.stringify([...bucket].sort()) === JSON.stringify(["image/jpeg", "image/png", "image/webp", "video/mp4"]), bucket.join(","));
+
 console.log("\n" + results.map((r) => r.join("  ")).join("\n"));
 console.log(`\n${results.filter((r) => r[0] === "OK ").length}/${results.length} contrôles réussis`);

@@ -1,10 +1,14 @@
+# Dépendances et builds
 node_modules/
 .next/
-.env
-.env.local
-.env.*.local
+.vercel
+
+# Secrets : tous les fichiers .env sont exclus, sauf les modèles sans valeurs
+.env*
+!.env.example
+
+# Système et outils
 .DS_Store
 Thumbs.db
 *.log
 .impeccable/
-.vercel

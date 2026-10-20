@@ -54,7 +54,6 @@ export async function forgetBlob(id: string) { await Promise.all([del(blobKey(id
 /* ---------------------------------------------------------
    Vidéos : contrôle, durée et vignette extraite dans le navigateur
    --------------------------------------------------------- */
-export const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
 
 export function probeVideo(file: File): Promise<{ duration: number; width: number; height: number; poster: Blob | null }> {
   return new Promise((resolve, reject) => {
@@ -144,7 +143,7 @@ export const remote = {
   async upload(vendorId: string | undefined, id: string, kind: "photo" | "video", blob: Blob, onProgress: (p: number) => void, extra: { width?: number; height?: number; duration?: number; poster?: Blob | null; albumId?: string }) {
     const sb = getSupabase();
     if (!sb || !vendorId) return null;
-    const ext = kind === "photo" ? "webp" : (blob.type.split("/")[1] ?? "mp4").replace("quicktime", "mov");
+    const ext = kind === "photo" ? "webp" : "mp4";
     const path = `${vendorId}/${kind}-${id}.${ext}`;
     const { data: signed, error } = await sb.storage.from("vendor-media").createSignedUploadUrl(path);
     if (error || !signed) throw new Error("Envoi refusé par le serveur.");

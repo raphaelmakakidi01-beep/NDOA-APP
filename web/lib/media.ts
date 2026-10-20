@@ -2,15 +2,30 @@
 
 import imageCompression from "browser-image-compression";
 
-export const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+/* Formats acceptés en production (les mêmes sont imposés par le stockage Supabase) */
+export const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export const VIDEO_TYPES = ["video/mp4"];
+export const PHOTO_ACCEPT = ".jpg,.jpeg,.png,.webp," + PHOTO_TYPES.join(",");
+export const MEDIA_ACCEPT = `${PHOTO_ACCEPT},.mp4,${VIDEO_TYPES.join(",")}`;
+/** Taille avant compression ; après compression une photo pèse ≈ 1,5 Mo (le serveur refuse > 5 Mo) */
 export const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+
+/** Le fichier choisi est-il une vidéo (quel que soit son format) ? */
+export const isVideoFile = (file: File) => file.type.startsWith("video/") || /\.(mp4|m4v|mov|webm|avi|mkv|3gp)$/i.test(file.name);
 
 /** Vérifie un fichier avant traitement ; renvoie un message d’erreur ou null */
 export function checkPhoto(file: File): string | null {
-  if (!PHOTO_TYPES.includes(file.type) && !/\.(heic|heif)$/i.test(file.name))
-    return `« ${file.name} » n’est pas une photo (JPEG, PNG, WebP ou AVIF).`;
-  if (/\.(heic|heif)$/i.test(file.name)) return `« ${file.name} » est au format HEIC : exportez-la en JPEG depuis votre téléphone.`;
+  if (/\.(heic|heif)$/i.test(file.name) || /heic|heif/.test(file.type))
+    return `« ${file.name} » est au format HEIC : exportez-la en JPEG depuis votre téléphone.`;
+  if (!PHOTO_TYPES.includes(file.type)) return `« ${file.name} » n’est pas une photo JPEG, PNG ou WebP.`;
   if (file.size > MAX_PHOTO_BYTES) return `« ${file.name} » dépasse 15 Mo.`;
+  return null;
+}
+
+/** Vidéos : MP4 uniquement (lisible partout, y compris sur iPhone et WhatsApp) */
+export function checkVideo(file: File): string | null {
+  if (!VIDEO_TYPES.includes(file.type) && !/\.mp4$/i.test(file.name))
+    return `« ${file.name} » : seules les vidéos MP4 sont acceptées. Exportez-la en MP4 depuis votre téléphone ou votre logiciel de montage.`;
   return null;
 }
 
@@ -26,10 +41,9 @@ export async function checkSignature(file: File, kind: "photo" | "video"): Promi
   const isPng = b[0] === 0x89 && ascii(1, 4) === "PNG";
   const isWebp = ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP";
   const ftyp = ascii(4, 8) === "ftyp" ? ascii(8, 12) : "";
-  const isAvif = ftyp === "avif" || ftyp === "avis";
-  const isMp4 = !!ftyp && !isAvif; // mp4, isom, qt (MOV), M4V…
-  const isWebm = b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3;
-  const valid = kind === "photo" ? isJpeg || isPng || isWebp || isAvif : isMp4 || isWebm;
+  // conteneur MP4 (isom, mp41, mp42, avc1…), en excluant QuickTime (MOV) et les images HEIF/AVIF
+  const isMp4 = !!ftyp && !/^(qt  |avi[fs]|hei[cfx]|mif1|msf1)$/.test(ftyp);
+  const valid = kind === "photo" ? isJpeg || isPng || isWebp : isMp4;
   return valid ? null : `« ${file.name} » n’est pas ${kind === "photo" ? "une image valide" : "une vidéo valide"} (fichier corrompu ou renommé).`;
 }
 

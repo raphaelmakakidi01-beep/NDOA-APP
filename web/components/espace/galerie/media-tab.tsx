@@ -10,11 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/bits";
 import { useEspace } from "@/lib/espace/store";
+import { MEDIA_ACCEPT } from "@/lib/media";
 import type { MediaItem } from "@/lib/espace/types";
 import { cn } from "@/lib/utils";
 import { MediaDialog, fmtDuration } from "./media-dialog";
 
-const ACCEPT = "image/jpeg,image/png,image/webp,image/avif,video/mp4,video/webm,video/quicktime";
+const ACCEPT = MEDIA_ACCEPT;
 type Filter = "all" | "photo" | "video" | "featured" | "none" | `album:${string}`;
 
 export function UploadZone({ albumId, highlight }: { albumId?: string; highlight?: boolean }) {
@@ -31,7 +32,7 @@ export function UploadZone({ albumId, highlight }: { albumId?: string; highlight
       <span className="mx-auto grid size-12 shrink-0 place-items-center rounded-2xl bg-gold/15 text-gold-ink sm:mx-0"><UploadCloud className="size-6" aria-hidden /></span>
       <div className="flex-1">
         <p className="font-semibold">Glissez vos photos et vidéos ici</p>
-        <p className="text-sm text-muted">Plusieurs fichiers à la fois · photos compressées et redimensionnées automatiquement · vidéos MP4, WebM ou MOV</p>
+        <p className="text-sm text-muted">Plusieurs fichiers à la fois · photos compressées et redimensionnées automatiquement · photos JPEG, PNG ou WebP · vidéos MP4</p>
       </div>
       <Button onClick={() => input.current?.click()}><ImagePlus aria-hidden />Choisir des fichiers</Button>
       <input ref={input} type="file" multiple accept={ACCEPT} className="sr-only" tabIndex={-1} aria-label="Choisir des fichiers"

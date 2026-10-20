@@ -4,12 +4,12 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getUser, type SessionUser } from "@/lib/auth";
-import { checkPhoto, checkSignature, compressPhoto } from "@/lib/media";
+import { checkPhoto, checkSignature, checkVideo, compressPhoto, isVideoFile } from "@/lib/media";
 import { getSupabase } from "@/lib/supabase/client";
 import { cacheDraft, loadDraft } from "@/lib/onboarding/repo";
 import { emptyDraft, type Draft } from "@/lib/onboarding/types";
 import { uid, formatBytes } from "@/lib/utils";
-import { cacheEspace, forgetBlob, loadDemoEspace, loadFromDb, probeVideo, putBlob, remote, VIDEO_TYPES } from "./repo";
+import { cacheEspace, forgetBlob, loadDemoEspace, loadFromDb, probeVideo, putBlob, remote } from "./repo";
 import { PLANS, type Album, type EspaceData, type MediaItem, type Notification, type Story } from "./types";
 
 type Status = "loading" | "error" | "ready";
@@ -162,8 +162,10 @@ export function EspaceProvider({ children }: { children: React.ReactNode }) {
     const queue: { file: File; kind: "photo" | "video" }[] = [];
 
     for (const file of Array.from(files)) {
-      const isVideo = VIDEO_TYPES.includes(file.type);
+      const isVideo = isVideoFile(file);
       if (isVideo) {
+        const bad = checkVideo(file);
+        if (bad) { toast.error(bad); continue; }
         if (!plan.maxVideos) { toast.error("Les vidéos sont disponibles à partir de l’offre Pro.", { action: { label: "Voir les offres", onClick: () => router.push("/espace/abonnement") } }); continue; }
         if (videos >= plan.maxVideos) { toast.error(`Limite de ${plan.maxVideos} vidéos atteinte pour l’offre ${plan.name}.`); continue; }
         if (file.size > plan.maxVideoMb * 1024 * 1024) { toast.error(`« ${file.name} » dépasse ${plan.maxVideoMb} Mo.`); continue; }

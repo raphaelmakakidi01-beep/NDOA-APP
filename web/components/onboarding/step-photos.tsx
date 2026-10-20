@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { useOnboarding } from "@/lib/onboarding/store";
 import { MIN_PHOTOS, type MediaRef } from "@/lib/onboarding/types";
 import { DEMO } from "@/lib/config";
+import { PHOTO_ACCEPT } from "@/lib/media";
 import { cn, formatBytes } from "@/lib/utils";
 import { StepFooter, StepHeader } from "./step-ui";
 
-const ACCEPT = "image/jpeg,image/png,image/webp,image/avif";
+const ACCEPT = PHOTO_ACCEPT;
 
 function DropZone({ onFiles, multiple, className, children, label }: { onFiles: (f: FileList) => void; multiple?: boolean; className?: string; children: React.ReactNode; label: string }) {
   const input = useRef<HTMLInputElement>(null);

@@ -6,6 +6,7 @@ import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { useOnboarding } from "@/lib/onboarding/store";
 import { CITIES, LANGUAGES, ZONE_SUGGESTIONS } from "@/lib/onboarding/catalog";
 import { getSupabase } from "@/lib/supabase/client";
+import { PHOTO_ACCEPT } from "@/lib/media";
 import { slugify } from "@/lib/utils";
 import { StepFooter, StepHeader, ToggleChip } from "./step-ui";
 
@@ -84,7 +85,7 @@ export function StepEntreprise() {
               {draft.avatar ? "Changer" : "Choisir une image"}
             </button>
           </div>
-          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="sr-only" tabIndex={-1}
+          <input ref={fileRef} type="file" accept={PHOTO_ACCEPT} className="sr-only" tabIndex={-1}
             onChange={(e) => { const f = e.target.files?.[0]; if (f) void setAvatar(f); e.target.value = ""; }} />
         </div>
 

@@ -20,7 +20,7 @@ import type { MediaItem } from "@/lib/espace/types";
 import { CITIES, DETAIL_FIELDS, LANGUAGES, STYLE_SUGGESTIONS, ZONE_SUGGESTIONS, categoryName } from "@/lib/onboarding/catalog";
 import { stepSchemas } from "@/lib/onboarding/rules";
 import { storeImage } from "@/lib/onboarding/repo";
-import { checkPhoto, checkSignature, compressPhoto } from "@/lib/media";
+import { checkPhoto, checkSignature, compressPhoto, PHOTO_ACCEPT } from "@/lib/media";
 import type { Draft, MediaRef } from "@/lib/onboarding/types";
 import { toFieldErrors, type FieldErrors } from "@/lib/validation";
 import { cn } from "@/lib/utils";
@@ -159,7 +159,7 @@ export function Vitrine() {
                   {avatarBusy ? <Loader2 className="size-5 animate-spin" aria-label="Envoi en cours" /> : "Changer"}
                 </span>
               </button>
-              <input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="sr-only" tabIndex={-1}
+              <input ref={avatarInput} type="file" accept={PHOTO_ACCEPT} className="sr-only" tabIndex={-1}
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) void onAvatar(f); e.target.value = ""; }} />
               <div className="grid grid-cols-1 gap-5">
                 <Field id="v-name" label="Nom affiché" error={errors.name}>
