@@ -219,5 +219,131 @@ await as(E, "authenticated", () => expectError("Uploads : photo non compressée 
 const bucket = (await db.query(`select allowed_mime_types a from storage.buckets where id = 'vendor-media'`)).rows[0].a;
 ok("Uploads : le bucket n'accepte que JPEG, PNG, WebP et MP4", JSON.stringify([...bucket].sort()) === JSON.stringify(["image/jpeg", "image/png", "image/webp", "video/mp4"]), bucket.join(","));
 
+// =====================================================================
+// ESPACE ADMIN : rôles, validation, modération, audit
+// =====================================================================
+const A = "00000000-0000-0000-0000-0000000000ad", M = "00000000-0000-0000-0000-0000000000a0";
+await db.exec(`insert into auth.users (id, email, raw_user_meta_data) values ('${A}', 'admin@ndoa.cd', '{"full_name":"Admin"}'), ('${M}', 'modo@ndoa.cd', '{"full_name":"Modo"}');`);
+await as(null, "service_role", () => db.exec(`update profiles set role = 'admin' where id = '${A}'`));
+const roleOf = async (id) => (await db.query(`select role from profiles where id = '${id}'`)).rows[0].role;
+
+// Rôles
+await as(X, "authenticated", () => expectError("Admin : un utilisateur ne peut pas se promouvoir admin", `update profiles set role = 'admin' where id = '${X}'`, "ROLE_ADMIN_ONLY"));
+ok("Admin : le propriétaire d'une vitrine devient « prestataire »", (await roleOf(O)) === "prestataire" && (await roleOf(X)) === "prestataire", `${await roleOf(O)} / ${await roleOf(X)}`);
+await as(M, "authenticated", () => expectError("Admin : un non-admin ne peut pas attribuer de rôle", `select admin_set_role('${M}', 'moderateur')`, "ADMIN_ONLY"));
+await as(A, "authenticated", () => db.query(`select admin_set_role('${M}', 'moderateur')`));
+ok("Admin : l'admin nomme un modérateur", (await roleOf(M)) === "moderateur");
+await as(A, "authenticated", () => expectError("Admin : un admin ne change pas son propre rôle", `select admin_set_role('${A}', 'user')`, "ROLE_SELF_CHANGE"));
+
+// Préparation d'une vitrine publiable (6 photos, forfait, contact, catégorie) : le brouillon de X
+await as(null, "service_role", () => db.exec(`
+  alter table media disable trigger user;
+  insert into media (vendor_id, kind, storage_path, mime_type, size_bytes, status)
+    select '${draft}', 'photo', '${draft}/p' || g || '.webp', 'image/webp', 1000, 'ready' from generate_series(1, 6) g;
+  alter table media enable trigger user;
+  insert into packages (vendor_id, name, price_amount) values ('${draft}', 'Formule', 50000);
+  insert into vendor_categories (vendor_id, category_id, is_primary) values ('${draft}', 1, true);
+  update vendors set phone = '+243810000001' where id = '${draft}';`));
+const statusOf = async (id) => (await db.query(`select status from vendors where id = '${id}'`)).rows[0].status;
+
+// Circuit de validation
+await as(X, "authenticated", () => db.exec(`update vendors set approved_at = now() where id = '${draft}'`));
+await as(X, "authenticated", () => db.exec(`update vendors set status = 'published' where id = '${draft}'`));
+ok("Validation : la 1re publication part en file d'attente (approved_at non falsifiable)", (await statusOf(draft)) === "pending_review", await statusOf(draft));
+await as(X, "authenticated", () => expectError("Validation : un prestataire ne s'auto-valide pas", `update vendors set status = 'rejected' where id = '${draft}'`, "STATUS_ADMIN_ONLY"));
+await as(null, "anon", async () => {
+  const r = await db.query(`select count(*)::int n from vendors where id = '${draft}'`);
+  ok("Validation : une vitrine en attente est invisible du public", r.rows[0].n === 0);
+});
+await as(M, "authenticated", async () => {
+  const r = await db.query(`select count(*)::int n from vendors where status = 'pending_review'`);
+  const p = await db.query(`select count(*)::int n from media where vendor_id = '${draft}'`);
+  ok("Validation : le modérateur voit la file et l'aperçu (médias)", r.rows[0].n === 1 && p.rows[0].n === 6, `${r.rows[0].n} / ${p.rows[0].n}`);
+});
+await as(M, "authenticated", () => expectError("Validation : refus sans motif impossible", `select admin_review_vendor('${draft}', 'reject', '  ')`, "REASON_REQUIRED"));
+await as(M, "authenticated", () => db.query(`select admin_review_vendor('${draft}', 'reject', 'Photos floues : remplacez la couverture')`));
+const outbox = (await db.query(`select template, to_email from email_outbox where template = 'vendor_rejected'`)).rows;
+ok("Validation : refus → statut « rejected » + e-mail avec motif en file d'envoi", (await statusOf(draft)) === "rejected" && outbox.length === 1 && outbox[0].to_email === "x@x.cd", JSON.stringify(outbox));
+await as(X, "authenticated", () => db.exec(`update vendors set status = 'published' where id = '${draft}'`));
+ok("Validation : après correction, le prestataire renvoie en validation", (await statusOf(draft)) === "pending_review");
+await as(M, "authenticated", async () => {
+  const r = await db.query(`select admin_review_vendors(array['${draft}'::uuid, '00000000-0000-0000-0000-000000000999'::uuid], 'approve') as r`);
+  ok("Validation groupée : 1 validée, 1 erreur signalée sans tout annuler", r.rows[0].r.ok === 1 && r.rows[0].r.errors.length === 1, JSON.stringify(r.rows[0].r));
+});
+ok("Validation : vitrine publiée après approbation", (await statusOf(draft)) === "published");
+
+// Badge, suspension, suppression : admin uniquement
+await as(M, "authenticated", () => expectError("Admin : le modérateur ne peut pas attribuer le badge Vérifié", `select admin_set_verified('${draft}', true)`, "ADMIN_ONLY"));
+await as(A, "authenticated", () => db.query(`select admin_set_verified('${draft}', true)`));
+await as(A, "authenticated", () => db.query(`select admin_suspend_vendor('${draft}', true, 'Fraude signalée')`));
+await as(X, "authenticated", () => expectError("Suspension : le prestataire ne peut pas se republier", `update vendors set status = 'published' where id = '${draft}'`, "VENDOR_SUSPENDED"));
+await as(A, "authenticated", () => db.query(`select admin_suspend_vendor('${draft}', false, 'Vérifié')`));
+ok("Suspension : la levée remet la vitrine validée en ligne", (await statusOf(draft)) === "published");
+await as(A, "authenticated", () => expectError("Suppression : confirmation par le slug obligatoire", `select admin_delete_vendor('${draft}', 'mauvais-slug', 'Doublon')`, "CONFIRMATION_MISMATCH"));
+
+// Modération
+let rep;
+await as(null, "anon", async () => {
+  rep = (await db.query(`select report_content('media', (select id from media where vendor_id = '${draft}' limit 1), 'inapproprie', 'Photo choquante', null, 'visiteur-1') as id`)).rows[0].id;
+  const again = (await db.query(`select report_content('media', (select id from media where vendor_id = '${draft}' limit 1), 'inapproprie', null, null, 'visiteur-1') as id`)).rows[0].id;
+  ok("Signalement : un visiteur signale une photo (dédoublonné)", !!rep && again === rep);
+});
+await as(null, "anon", () => expectError("Signalement : motif hors liste refusé", `select report_content('media', (select id from media limit 1), 'nimporte', null, null, 'v2')`, "REASON_INVALID"));
+await as(null, "anon", () => expectError("RLS : un anonyme ne lit pas les signalements", `select 1/(count(*)::int) from reports`));
+const mid = (await db.query(`select target_id from reports where id = '${rep}'`)).rows[0].target_id;
+await as(M, "authenticated", () => expectError("Modération : masquer sans motif impossible", `select admin_moderate('media', '${mid}', 'hide')`, "REASON_REQUIRED"));
+await as(M, "authenticated", async () => {
+  const n = (await db.query(`select admin_moderate('media', '${mid}', 'hide', 'inapproprie', 'contenu choquant') as n`)).rows[0].n;
+  ok("Modération : le modérateur masque la photo et clôt le signalement", n === 1);
+});
+await as(null, "anon", async () => {
+  const r = await db.query(`select count(*)::int n from media where id = '${mid}'`);
+  ok("Modération : la photo masquée n'est plus publique", r.rows[0].n === 0);
+});
+await as(X, "authenticated", () => expectError("Modération : le prestataire ne peut pas démasquer", `update media set is_hidden = false where id = '${mid}'`, "MODERATION_STAFF_ONLY"));
+
+// Mise en avant de l'accueil
+await as(M, "authenticated", () => expectError("Mise en avant : réservée aux admins", `insert into featured_slides (vendor_id, media_id) values ('${draft}', '${mid}')`));
+await as(A, "authenticated", () => db.exec(`
+  insert into featured_slides (vendor_id, image_path, title) values ('${draft}', 'hero/1.webp', 'Slide');
+  insert into featured_slides (vendor_id, image_path, title, starts_at) values ('${draft}', 'hero/2.webp', 'Futur', now() + interval '3 days');
+  insert into home_picks (section, vendor_id) values ('recommandations', '${draft}');`));
+await as(null, "anon", async () => {
+  const r = await db.query(`select title from featured_slides`);
+  ok("Mise en avant : le public ne voit que les slides actifs et en cours", r.rows.length === 1 && r.rows[0].title === "Slide", JSON.stringify(r.rows));
+});
+ok("Mise en avant : « Nos recommandations » pose le badge Recommandé", (await db.query(`select is_recommended from vendors where id = '${draft}'`)).rows[0].is_recommended === true);
+await as(A, "authenticated", () => expectError("Mise en avant : un seul prestataire « à la une »", `insert into home_picks (section, vendor_id) values ('a_la_une', '${draft}'), ('a_la_une', '${vid}')`));
+
+// Journal d'audit
+await as(A, "authenticated", () => db.exec(`update vendors set tagline = 'Modifié par l''admin' where id = '${vid}'`));
+await as(A, "authenticated", async () => {
+  const r = await db.query(`select action, actor_role, reason from audit_logs order by id`);
+  const acts = r.rows.map((x) => x.action);
+  const need = ["user.role", "vendor.reject", "vendor.approve", "vendor.verify", "vendor.suspend", "vendor.unsuspend", "media.hide", "featured_slides.insert", "vendors.update"];
+  const missing = need.filter((a) => !acts.includes(a));
+  ok("Audit : chaque action du staff est journalisée (auteur, rôle, motif)", !missing.length && r.rows.find((x) => x.action === "vendor.reject")?.reason?.includes("Photos floues"), missing.join(","));
+  const del = await db.query(`delete from audit_logs`);
+  ok("Audit : le journal est inaltérable (suppression refusée)", !del.affectedRows);
+});
+await as(M, "authenticated", async () => {
+  const r = await db.query(`select count(*)::int n from audit_logs`);
+  ok("Audit : le modérateur ne lit pas le journal", r.rows[0].n === 0);
+});
+await as(X, "authenticated", () => expectError("Audit : un prestataire ne peut pas écrire dans le journal", `insert into audit_logs (action, target_type) values ('faux', 'x')`));
+
+// Tableau de bord
+await as(M, "authenticated", async () => {
+  const d = (await db.query(`select admin_dashboard(7) as d`)).rows[0].d;
+  ok("Tableau de bord : KPI pour le modérateur, sans les revenus", d.prestataires_actifs >= 2 && d.revenus_mois === null && d.series.length === 7, `actifs=${d.prestataires_actifs} séries=${d.series.length}`);
+});
+await as(X, "authenticated", () => expectError("Tableau de bord : refusé aux non-staff", `select admin_dashboard(30)`, "ADMIN_ONLY"));
+await as(null, "anon", () => expectError("Admin : les fonctions admin sont interdites aux anonymes", `select admin_review_vendor('${draft}', 'approve')`));
+
+// Toutes les tables ont la RLS active
+const noRls = (await db.query(`select relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity`)).rows.map((r) => r.relname);
+ok("RLS active sur toutes les tables (y compris admin)", !noRls.length, noRls.join(","));
+
 console.log("\n" + results.map((r) => r.join("  ")).join("\n"));
 console.log(`\n${results.filter((r) => r[0] === "OK ").length}/${results.length} contrôles réussis`);
