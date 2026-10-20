@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+/* Le thème sombre est piloté par la classe `.dark` (next-themes) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =========================================================
+   Tokens NDOA Wedding — mode clair (ivoire)
+   Les couleurs « -ink » sont les versions assombries utilisées
+   pour du TEXTE sur fond clair (contraste AA).
+   ========================================================= */
+:root {
+  --bg: #f5f0e8;
+  --surface: #ffffff;
+  --surface-2: #eae2d5;
+  --text: #17171a;
+  --muted: #5c564e;
+  --line: rgba(23, 23, 26, 0.13);
+  --line-strong: rgba(23, 23, 26, 0.24);
+  --gold: #c4975a;
+  /* brun NDOA : texte d’accent sur ivoire (contraste 7:1) */
+  --gold-ink: #8b4026;
+  --on-gold: #0a0a0b;
+  --rose: #e8a2b4;
+  --rose-ink: #9c3557;
+  --danger: #8f2a3d;
+  --success: #2f6b47;
+  --overlay: rgba(23, 23, 26, 0.45);
+  color-scheme: light;
+}
+
+/* Mode sombre (par défaut) */
+.dark {
+  --bg: #0a0a0b;
+  --surface: #17171a;
+  --surface-2: #1f1f23;
+  --text: #f5f0e8;
+  --muted: #a8a299;
+  --line: rgba(245, 240, 232, 0.12);
+  --line-strong: rgba(245, 240, 232, 0.24);
+  --gold-ink: #d2a86c;
+  --rose-ink: #e8a2b4;
+  --danger: #f0b9c6;
+  --success: #8fd1a6;
+  --overlay: rgba(5, 5, 6, 0.7);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
+  --color-on-gold: var(--on-gold);
+  --color-rose: var(--rose);
+  --color-rose-ink: var(--rose-ink);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-overlay: var(--overlay);
+  --color-bordeaux: #8b4026;
+  --color-ivory: #f5f0e8;
+  --font-serif: var(--font-bodoni), "Didot", "Times New Roman", serif;
+  --font-sans: var(--font-manrope), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius-xl: 1.25rem;
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Focus visible doré, partout */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Titres éditoriaux */
+.font-display {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
+  letter-spacing: -0.02em;
+}
+
+/* Squelettes de chargement */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 0%, var(--line) 50%, var(--surface-2) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Animations des fenêtres modales */
+@keyframes fadeIn { from { opacity: 0; } }
+/* Tailwind 4 centre avec la propriété `translate` : l’animation n’utilise que `transform`, les deux se cumulent */
+@keyframes dialogIn { from { opacity: 0; transform: translateY(16px) scale(0.98); } }

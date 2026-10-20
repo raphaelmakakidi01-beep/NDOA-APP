@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /prestataire.html
+
+Sitemap: https://ndoa.cd/sitemap.xml
