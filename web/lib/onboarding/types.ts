@@ -62,6 +62,8 @@ export type Draft = {
   };
   done: Partial<Record<StepKey, boolean>>;
   publishedAt?: string;
+  /** Statut de validation par l'équipe NDOA (Supabase) et motif éventuel */
+  review?: { status: "draft" | "pending_review" | "published" | "rejected" | "suspended"; reason?: string };
   /* Champs complétés ensuite dans « Ma vitrine » */
   styleTags?: string[];
   /** Champs propres au métier (matériel, capacité…), clés de DETAIL_FIELDS */

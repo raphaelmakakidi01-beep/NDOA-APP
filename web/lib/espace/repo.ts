@@ -103,7 +103,8 @@ export async function loadFromDb(userId: string, email?: string): Promise<{ draf
   const draft: Partial<Draft> = {
     vendorId: v.id, name: v.name, slug: v.slug, tagline: v.tagline ?? "", bio: v.bio ?? "", city: v.city, zones: v.zones, languages: v.languages,
     categories: cats.map((c) => c.categories.slug), primaryCategory: cats.find((c) => c.is_primary)?.categories.slug,
-    styleTags: v.style_tags, details: v.details ?? {}, publishedAt: v.published_at ?? undefined,
+    styleTags: v.style_tags, details: v.details ?? {}, publishedAt: v.published_at ?? v.submitted_at ?? undefined,
+    review: { status: v.status, reason: v.status === "suspended" ? v.suspended_reason ?? undefined : v.rejection_reason ?? undefined },
     avatar: v.avatar_path ? { id: "avatar", url: publicUrl(sb, v.avatar_path), source: "remote", name: "avatar", size: 0, status: "ready", progress: 100 } : undefined,
     contacts: {
       country: "+243", phone: (v.phone ?? "").replace(/^\+243/, ""), whatsappSame: v.phone === v.whatsapp, whatsapp: (v.whatsapp ?? "").replace(/^\+243/, ""),

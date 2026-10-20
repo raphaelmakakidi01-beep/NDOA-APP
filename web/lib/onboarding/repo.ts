@@ -172,10 +172,13 @@ export async function publish(d: Draft): Promise<Result> {
     await new Promise((r) => setTimeout(r, 900));
     return { ok: true, draft: { ...d, publishedAt: new Date().toISOString() } };
   }
-  const { error } = await sb.from("vendors").update({ status: "published", onboarding_step: 7 }).eq("id", d.vendorId);
+  const { data, error } = await sb.from("vendors").update({ status: "published", onboarding_step: 7 }).eq("id", d.vendorId)
+    .select("status, rejection_reason").maybeSingle();
   if (error) {
     const code = Object.keys(PUBLISH_ERRORS).find((k) => error.message.includes(k));
     return { ok: false, error: code ? PUBLISH_ERRORS[code] : "La publication a échoué. Réessayez." };
   }
-  return { ok: true, draft: { ...d, publishedAt: new Date().toISOString() } };
+  // la base place une première publication en file de validation (« pending_review »)
+  const review = { status: (data?.status ?? "pending_review") as NonNullable<Draft["review"]>["status"] };
+  return { ok: true, draft: { ...d, publishedAt: new Date().toISOString(), review } };
 }

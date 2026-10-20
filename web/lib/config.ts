@@ -1,7 +1,9 @@
 /** Sans clés Supabase, l’application tourne en mode démo (données locales au navigateur). */
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-export const DEMO = !SUPABASE_URL || !SUPABASE_ANON_KEY;
+/** NEXT_PUBLIC_FORCE_DEMO=1 (développement uniquement) : force le mode démo même avec des clés, pour tester l'interface */
+const FORCE_DEMO = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_FORCE_DEMO === "1";
+export const DEMO = FORCE_DEMO || !SUPABASE_URL || !SUPABASE_ANON_KEY;
 
 /**
  * Confirmation de l’e-mail à l’inscription : « lien » (e-mail par défaut de Supabase, lien cliquable)

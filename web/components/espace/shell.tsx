@@ -13,6 +13,7 @@ import { EspaceProvider, useEspaceMaybe } from "@/lib/espace/store";
 import { PLANS } from "@/lib/espace/types";
 import { cn } from "@/lib/utils";
 import { MOBILE_TABS, NAV } from "./nav";
+import { ReviewBanner } from "./review-banner";
 
 /* Préférence « sidebar repliée » partagée entre onglets, sans écart d’hydratation */
 const listeners = new Set<() => void>();
@@ -42,7 +43,7 @@ export function EspaceShell({ children }: { children: React.ReactNode }) {
         </React.Suspense>
         <div className="min-w-0 flex-1">
           <Topbar />
-          <main id="contenu" className="mx-auto w-full max-w-[1240px] px-4 pb-32 pt-6 sm:px-6 lg:px-10 lg:pb-16 lg:pt-8">{children}</main>
+          <main id="contenu" className="mx-auto w-full max-w-[1240px] px-4 pb-32 pt-6 sm:px-6 lg:px-10 lg:pb-16 lg:pt-8"><ReviewBanner />{children}</main>
         </div>
       </div>
       <React.Suspense fallback={null}>

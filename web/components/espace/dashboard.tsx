@@ -68,7 +68,7 @@ export function Dashboard() {
         <div>
           <p className="text-sm capitalize text-muted">{new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}</p>
           <h1 className="font-display mt-1 text-[2.1rem] leading-tight sm:text-5xl">Bonjour <em className="text-gold-ink">{firstName}</em></h1>
-          <p className="mt-1 text-muted">{isEmpty ? "Votre vitrine est en ligne. Les premières visites arrivent généralement sous 48 h." : "Voici l’activité de votre vitrine."}</p>
+          <p className="mt-1 text-muted">{vendor.review && vendor.review.status !== "published" ? "Voici votre espace. Votre vitrine sera visible des couples après validation." : isEmpty ? "Votre vitrine est en ligne. Les premières visites arrivent généralement sous 48 h." : "Voici l’activité de votre vitrine."}</p>
         </div>
         <Segmented label="Période" layoutId="period" value={period} onChange={setPeriod} options={[{ value: "7", label: "7 jours" }, { value: "30", label: "30 jours" }]} />
       </div>

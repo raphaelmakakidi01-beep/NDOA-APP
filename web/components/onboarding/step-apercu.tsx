@@ -35,8 +35,17 @@ export function StepApercu() {
       {published ? (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 rounded-3xl border border-gold/50 bg-surface p-6 sm:p-8">
           <span className="mb-4 grid size-14 place-items-center rounded-2xl bg-gold text-on-gold"><PartyPopper className="size-6" aria-hidden /></span>
-          <h1 className="font-display text-[1.9rem] leading-[1.08] sm:text-[2.4rem]">Votre vitrine est <em className="text-gold-ink">en ligne</em>.</h1>
-          <p className="mt-3 max-w-xl text-muted">Les mariés peuvent désormais vous trouver et vous envoyer des demandes de devis. Complétez votre profil pour remonter dans les résultats.</p>
+          {draft.review?.status === "pending_review" ? (
+            <>
+              <h1 className="font-display text-[1.9rem] leading-[1.08] sm:text-[2.4rem]">Votre vitrine est <em className="text-gold-ink">envoyée en validation</em>.</h1>
+              <p className="mt-3 max-w-xl text-muted">L’équipe NDOA la vérifie, généralement sous 24 h. Vous recevrez un e-mail dès sa mise en ligne. En attendant, complétez votre profil depuis votre tableau de bord.</p>
+            </>
+          ) : (
+            <>
+              <h1 className="font-display text-[1.9rem] leading-[1.08] sm:text-[2.4rem]">Votre vitrine est <em className="text-gold-ink">en ligne</em>.</h1>
+              <p className="mt-3 max-w-xl text-muted">Les mariés peuvent désormais vous trouver et vous envoyer des demandes de devis. Complétez votre profil pour remonter dans les résultats.</p>
+            </>
+          )}
           <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild size="lg"><Link href="/espace"><LayoutDashboard aria-hidden />Aller au tableau de bord</Link></Button>
             <Button variant="outline" size="lg" onClick={async () => { try { await navigator.clipboard.writeText(publicUrl); toast.success("Lien copié", { description: publicUrl }); } catch { toast.error("Copie impossible"); } }}>

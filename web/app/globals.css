@@ -117,3 +117,15 @@ body {
 @keyframes fadeIn { from { opacity: 0; } }
 /* Tailwind 4 centre avec la propriété `translate` : l’animation n’utilise que `transform`, les deux se cumulent */
 @keyframes dialogIn { from { opacity: 0; transform: translateY(16px) scale(0.98); } }
+
+/* =========================================================
+   Espace admin : même design system, accent or #D4AF6A,
+   version outil (dense). En clair, le texte d’accent reste brun (contraste AA).
+   ========================================================= */
+.admin-ui {
+  --gold: #d4af6a;
+}
+.dark .admin-ui {
+  --gold-ink: #d4af6a;
+}
+.admin-ui .tabular { font-variant-numeric: tabular-nums; }
