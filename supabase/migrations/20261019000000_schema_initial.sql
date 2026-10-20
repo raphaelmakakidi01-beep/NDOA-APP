@@ -5,8 +5,8 @@
 -- horodatages en timestamptz, RLS activée sur TOUTES les tables publiques.
 -- =====================================================================
 
-create extension if not exists pgcrypto;
-create extension if not exists citext;
+create extension if not exists pgcrypto with schema extensions;  -- déjà présent sur Supabase
+create extension if not exists citext with schema public;  -- opérateurs visibles des fonctions (search_path = public)
 
 -- ---------------------------------------------------------------------
 -- 1. TYPES
@@ -350,7 +350,7 @@ create table public.reviews (
 create index reviews_vendor_idx on public.reviews (vendor_id, status, created_at desc);
 
 create table public.review_requests (
-  token       text primary key default translate(encode(gen_random_bytes(18), 'base64'), '+/', '-_'),
+  token       text primary key default translate(encode(extensions.gen_random_bytes(18), 'base64'), '+/', '-_'),
   vendor_id   uuid not null references public.vendors (id) on delete cascade,
   inquiry_id  uuid references public.inquiries (id) on delete set null,
   sent_to     text,

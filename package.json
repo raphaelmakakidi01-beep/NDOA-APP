@@ -1,0 +1,12 @@
+{
+  "name": "ndoa-wedding",
+  "private": true,
+  "description": "Outils du projet NDOA Wedding (Supabase CLI, génération SEO)",
+  "scripts": {
+    "supabase": "supabase",
+    "seo": "node scripts/build-seo.mjs"
+  },
+  "devDependencies": {
+    "supabase": "2.121.0"
+  }
+}

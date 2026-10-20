@@ -12,7 +12,8 @@ const db = new PGlite({ extensions: { citext } });
 const STUBS = `
 create role anon nologin; create role authenticated nologin; create role service_role nologin;
 create extension if not exists citext;
-create or replace function public.gen_random_bytes(n int) returns bytea language sql volatile as $$
+create schema if not exists extensions;
+create or replace function extensions.gen_random_bytes(n int) returns bytea language sql volatile as $$
   select decode(string_agg(md5(random()::text), ''), 'hex') from generate_series(1, (n / 16) + 1) $$;
 create schema auth;
 create table auth.users (id uuid primary key, email text, phone text, raw_user_meta_data jsonb default '{}');
@@ -42,7 +43,7 @@ async function expectError(name, sql, code) {
 await db.exec(STUBS);
 const migs = fs.readdirSync(path.join(ROOT, "migrations")).sort();
 for (const f of migs) {
-  let sql = fs.readFileSync(path.join(ROOT, "migrations", f), "utf8").replace(/create extension if not exists pgcrypto;/g, "");
+  let sql = fs.readFileSync(path.join(ROOT, "migrations", f), "utf8").replace(/create extension if not exists pgcrypto[^;]*;/g, "").replace(/create extension if not exists citext with schema public;/g, "");
   try { await db.exec(sql); console.log("migration OK :", f); }
   catch (e) { console.log("migration ÉCHEC :", f, "\n ", e.message); process.exit(1); }
 }
@@ -171,7 +172,7 @@ await as(null, "anon", () => expectError("RLS : un anonyme ne lit pas les statis
 // Disponibilités publiques
 await as(O, "authenticated", () => db.exec(`insert into availability (vendor_id, day, status, note) values ('${vid}', current_date + 10, 'booked', 'Mariage privé')`));
 await as(null, "anon", async () => {
-  const r = await db.query(`select * from public_availability`);
+  const r = await db.query(`select * from get_public_availability('studio-test')`);
   ok("Calendrier public : statut visible, note privée masquée", r.rows.length === 1 && !("note" in r.rows[0]));
 });
 
