@@ -44,10 +44,10 @@ export function AdminDashboard() {
   const period = `sur ${days} jours`;
   const alerts = data ? [
     { n: data.alertes.prestataires_en_attente, label: plural(data.alertes.prestataires_en_attente, "vitrine à valider", "vitrines à valider"), icon: ClipboardCheck, href: "/admin/validation", urgent: true },
-    { n: data.alertes.medias_signales, label: plural(data.alertes.medias_signales, "photo ou vidéo signalée", "photos ou vidéos signalées"), icon: ImageIcon },
-    { n: data.alertes.avis_signales, label: plural(data.alertes.avis_signales, "avis signalé", "avis signalés"), icon: MessageSquareWarning },
-    { n: data.alertes.vitrines_signalees, label: plural(data.alertes.vitrines_signalees, "vitrine signalée", "vitrines signalées"), icon: Flag },
-    { n: data.alertes.avis_en_attente, label: "avis en attente de publication", icon: Star },
+    { n: data.alertes.medias_signales, label: plural(data.alertes.medias_signales, "photo ou vidéo signalée", "photos ou vidéos signalées"), icon: ImageIcon, href: "/admin/moderation" },
+    { n: data.alertes.avis_signales, label: plural(data.alertes.avis_signales, "avis signalé", "avis signalés"), icon: MessageSquareWarning, href: "/admin/moderation" },
+    { n: data.alertes.vitrines_signalees, label: plural(data.alertes.vitrines_signalees, "vitrine signalée", "vitrines signalées"), icon: Flag, href: "/admin/moderation" },
+    { n: data.alertes.avis_en_attente, label: "avis en attente de publication", icon: Star, href: "/admin/moderation" },
   ] : [];
 
   return (

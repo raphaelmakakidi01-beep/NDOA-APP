@@ -340,6 +340,28 @@ await as(M, "authenticated", async () => {
 await as(X, "authenticated", () => expectError("Tableau de bord : refusé aux non-staff", `select admin_dashboard(30)`, "ADMIN_ONLY"));
 await as(null, "anon", () => expectError("Admin : les fonctions admin sont interdites aux anonymes", `select admin_review_vendor('${draft}', 'approve')`));
 
+// Étape 3 : ordre par glisser-déposer et contenu public de l'accueil
+await as(A, "authenticated", () => db.exec(`insert into home_picks (section, vendor_id) values ('recommandations', '${vid}')`));
+const picks = (await db.query(`select id from home_picks where section = 'recommandations' order by created_at`)).rows.map((r) => r.id);
+await as(M, "authenticated", () => expectError("Ordre : réservé aux admins", `select admin_reorder('home_picks', array['${picks[1]}', '${picks[0]}'])`, "ADMIN_ONLY"));
+await as(A, "authenticated", () => db.query(`select admin_reorder('home_picks', array['${picks[1]}', '${picks[0]}'])`));
+await as(null, "anon", async () => {
+  const h = (await db.query(`select get_home_content() as h`)).rows[0].h;
+  ok("Accueil public : recommandations dans l'ordre choisi, slide actif uniquement",
+    h.recommandations.map((v) => v.slug).join(",") === "studio-test,brouillon-x" && h.slides.length === 1 && h.categories.length === 11 && h.cities.length === 10,
+    `${h.recommandations.map((v) => v.slug)} / slides=${h.slides.length}`);
+});
+await as(A, "authenticated", async () => {
+  const n = (await db.query(`select count(*)::int n from audit_logs where action = 'home_picks.reorder'`)).rows[0].n;
+  ok("Ordre : le réordonnancement est journalisé", n === 2, String(n));
+});
+await as(null, "service_role", () => db.exec(`alter table vendors disable trigger user; update vendors set status = 'suspended' where id = '${vid}'; alter table vendors enable trigger user;`));
+await as(null, "anon", async () => {
+  const h = (await db.query(`select get_home_content() as h`)).rows[0].h;
+  ok("Accueil public : une vitrine suspendue disparaît des recommandations", h.recommandations.length === 1);
+});
+await as(null, "service_role", () => db.exec(`alter table vendors disable trigger user; update vendors set status = 'published' where id = '${vid}'; alter table vendors enable trigger user;`));
+
 // Toutes les tables ont la RLS active
 const noRls = (await db.query(`select relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
   where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity`)).rows.map((r) => r.relname);
