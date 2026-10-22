@@ -45,6 +45,11 @@ const mediaUrl = (sb: SupabaseClient, path?: string | null) =>
   !path ? undefined : /^https?:/.test(path) ? path : sb.storage.from("vendor-media").getPublicUrl(path).data.publicUrl;
 const one = <T,>(x: T | T[] | null | undefined) => (Array.isArray(x) ? x[0] : x) ?? undefined;
 
+/** Rafraîchit l'annuaire et l'accueil publics après une décision (sinon : quelques minutes) */
+function refreshPublic() {
+  return fetch("/api/admin/revalidate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ tags: ["prestataires", "accueil"] }) }).catch(() => {});
+}
+
 /* ------------------------------------------------------------------ */
 /* Session                                                             */
 /* ------------------------------------------------------------------ */
@@ -228,6 +233,7 @@ export async function reviewVendors(ids: string[], decision: "approve" | "reject
   }
   const { data, error } = await sbOrThrow().rpc("admin_review_vendors", { p_ids: ids, p_decision: decision, p_reason: reason ?? null });
   if (error) throw new Error(adminError(error.message));
+  if (decision === "approve") void refreshPublic();
   return data as ReviewResult;
 }
 
@@ -235,6 +241,7 @@ export async function setVerified(id: string, verified: boolean) {
   if (DEMO) { await wait(); const v = demo.vendors.find((x) => x.id === id)!; v.isVerified = verified; demoLog(verified ? "vendor.verify" : "vendor.unverify", id); return; }
   const { error } = await sbOrThrow().rpc("admin_set_verified", { p_vendor: id, p_verified: verified });
   if (error) throw new Error(adminError(error.message));
+  void refreshPublic();
 }
 
 export async function suspendVendor(id: string, suspend: boolean, reason: string) {
@@ -248,6 +255,7 @@ export async function suspendVendor(id: string, suspend: boolean, reason: string
   }
   const { error } = await sbOrThrow().rpc("admin_suspend_vendor", { p_vendor: id, p_suspend: suspend, p_reason: reason });
   if (error) throw new Error(adminError(error.message));
+  void refreshPublic();
 }
 
 /** Suppression : route serveur (vérifie le rôle, appelle la base, nettoie le stockage avec la clé serveur) */
@@ -265,6 +273,7 @@ export async function deleteVendor(id: string, confirmSlug: string, reason: stri
   });
   const body = (await r.json().catch(() => ({}))) as { error?: string; storageCleaned?: boolean };
   if (!r.ok) throw new Error(adminError(body.error ?? "FAILED"));
+  void refreshPublic();
   return { storageCleaned: !!body.storageCleaned };
 }
 

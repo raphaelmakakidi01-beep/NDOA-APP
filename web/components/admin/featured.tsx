@@ -12,6 +12,7 @@ import {
 } from "@/lib/admin/content";
 import { periodStatus, type FeaturedStory, type HomePick, type MediaOption, type Slide, type VendorRef } from "@/lib/admin/content-types";
 import { PUBLIC_SITE_URL } from "@/lib/config";
+import { revalidatePublic } from "@/lib/admin/manage";
 import { checkPhoto } from "@/lib/media";
 import { cn } from "@/lib/utils";
 import { DragHandle, SortableList } from "./sortable";
@@ -42,11 +43,11 @@ export function Featured() {
   React.useEffect(load, [load]);
 
   const run = async (fn: () => Promise<unknown>, ok: string) => {
-    try { await fn(); toast.success(ok); load(); } catch (e) { toast.error((e as Error).message); load(); }
+    try { await fn(); toast.success(ok); void revalidatePublic(["accueil"]); load(); } catch (e) { toast.error((e as Error).message); load(); }
   };
   /** Ordre : appliqué tout de suite à l'écran, enregistré en un appel */
   const saveOrder = async (kind: "featured_slides" | "home_picks" | "featured_stories", ids: string[]) => {
-    try { await reorder(kind, ids); toast.success("Ordre enregistré"); } catch (e) { toast.error((e as Error).message); load(); }
+    try { await reorder(kind, ids); toast.success("Ordre enregistré"); void revalidatePublic(["accueil"]); } catch (e) { toast.error((e as Error).message); load(); }
   };
 
   if (error) return (

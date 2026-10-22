@@ -452,7 +452,7 @@ insert into public.site_pages (slug, title) values
   ('mentions-legales', 'Mentions légales')
 on conflict (slug) do nothing;
 insert into public.site_settings (key, value, is_public) values
-  ('accueil.hero', '{"titre": "Les meilleurs prestataires de mariage en RDC", "sous_titre": "Photographes, salles, traiteurs, DJ… comparez et réservez en toute confiance."}', true),
+  ('accueil.hero', '{"titre": "", "sous_titre": ""}', true),   -- vide : textes par défaut du site
   ('general.contact', '{"email": "bonjour@ndoa.cd", "whatsapp": ""}', true),
   ('moderation.validation_obligatoire', 'true', false)
 on conflict (key) do nothing;

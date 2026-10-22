@@ -9,6 +9,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { EmptyState, Stars, StatusTag } from "@/components/ui/bits";
 import { Segmented } from "@/components/ui/segmented";
 import { listHiddenMedia, listPendingReviews, listReports, moderate } from "@/lib/admin/content";
+import { revalidatePublic } from "@/lib/admin/manage";
 import { MODERATION_REASONS, TARGET_LABEL, reasonLabel, type HiddenMedia, type PendingReview, type ReportGroup, type ReportTarget } from "@/lib/admin/content-types";
 import { cn } from "@/lib/utils";
 import { useAdmin } from "./context";
@@ -40,6 +41,7 @@ export function Moderation() {
     setBusy(`${type}:${id}`);
     try {
       await moderate(type, id, action, reason, note);
+      void revalidatePublic(["accueil", "prestataires", "inspiration"]);
       toast.success(success ?? (action === "approve" ? "Signalement classé" : action === "hide" ? "Contenu masqué" : "Contenu supprimé"));
       setDecision(null);
       load();

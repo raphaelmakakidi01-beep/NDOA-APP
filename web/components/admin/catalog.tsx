@@ -11,6 +11,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { EmptyState, StatusTag } from "@/components/ui/bits";
 import { deleteCategory, deleteCity, listCategories, listCities, reorder, saveCategory, saveCity, uploadSiteImage } from "@/lib/admin/content";
 import { CATEGORY_ICONS, type AdminCategory, type AdminCity } from "@/lib/admin/content-types";
+import { revalidatePublic } from "@/lib/admin/manage";
 import { checkPhoto } from "@/lib/media";
 import { cn, slugify } from "@/lib/utils";
 import { DragHandle, SortableList } from "./sortable";
@@ -37,10 +38,10 @@ export function Catalog() {
   React.useEffect(load, [load]);
 
   const run = async (fn: () => Promise<unknown>, ok: string) => {
-    try { await fn(); toast.success(ok); load(); return true; } catch (e) { toast.error((e as Error).message); load(); return false; }
+    try { await fn(); toast.success(ok); void revalidatePublic(["accueil", "prestataires"]); load(); return true; } catch (e) { toast.error((e as Error).message); load(); return false; }
   };
   const saveOrder = async (kind: "categories" | "cities", ids: number[]) => {
-    try { await reorder(kind, ids); toast.success("Ordre enregistré"); } catch (e) { toast.error((e as Error).message); load(); }
+    try { await reorder(kind, ids); toast.success("Ordre enregistré"); void revalidatePublic(["accueil", "prestataires"]); } catch (e) { toast.error((e as Error).message); load(); }
   };
 
   if (error) return (

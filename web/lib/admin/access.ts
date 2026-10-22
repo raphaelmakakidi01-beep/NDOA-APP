@@ -4,7 +4,7 @@
 export type StaffRole = "admin" | "moderateur";
 export const STAFF_ROLES: readonly string[] = ["admin", "moderateur"];
 
-/** Sections du back-office. `ready` : disponible (les autres arrivent aux étapes suivantes). */
+/** Sections du back-office. `ready` : section disponible. */
 export const ADMIN_SECTIONS = [
   { href: "/admin", label: "Tableau de bord", roles: ["admin", "moderateur"], ready: true, group: "Pilotage" },
   { href: "/admin/validation", label: "File de validation", roles: ["admin", "moderateur"], ready: true, group: "Pilotage", badge: "queue" },
@@ -12,12 +12,12 @@ export const ADMIN_SECTIONS = [
   { href: "/admin/moderation", label: "Modération", roles: ["admin", "moderateur"], ready: true, group: "Pilotage" },
   { href: "/admin/mise-en-avant", label: "Mise en avant", roles: ["admin"], ready: true, group: "Contenu" },
   { href: "/admin/categories", label: "Catégories et villes", roles: ["admin"], ready: true, group: "Contenu" },
-  { href: "/admin/pages", label: "Pages et contenus", roles: ["admin"], ready: false, group: "Contenu" },
-  { href: "/admin/utilisateurs", label: "Utilisateurs", roles: ["admin"], ready: false, group: "Gestion" },
-  { href: "/admin/demandes", label: "Demandes de devis", roles: ["admin"], ready: false, group: "Gestion" },
-  { href: "/admin/abonnements", label: "Abonnements", roles: ["admin"], ready: false, group: "Gestion" },
-  { href: "/admin/communication", label: "Communication", roles: ["admin"], ready: false, group: "Gestion" },
-  { href: "/admin/parametres", label: "Paramètres", roles: ["admin"], ready: false, group: "Gestion" },
+  { href: "/admin/pages", label: "Pages et contenus", roles: ["admin"], ready: true, group: "Contenu" },
+  { href: "/admin/utilisateurs", label: "Utilisateurs", roles: ["admin"], ready: true, group: "Gestion" },
+  { href: "/admin/demandes", label: "Demandes de devis", roles: ["admin"], ready: true, group: "Gestion" },
+  { href: "/admin/abonnements", label: "Abonnements", roles: ["admin"], ready: true, group: "Gestion" },
+  { href: "/admin/communication", label: "Communication", roles: ["admin"], ready: true, group: "Gestion" },
+  { href: "/admin/parametres", label: "Paramètres", roles: ["admin"], ready: true, group: "Gestion" },
 ] as const satisfies readonly { href: string; label: string; roles: readonly StaffRole[]; ready: boolean; group: string; badge?: string }[];
 
 export type AdminSection = (typeof ADMIN_SECTIONS)[number];
