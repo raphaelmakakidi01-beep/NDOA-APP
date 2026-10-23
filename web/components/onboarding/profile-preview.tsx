@@ -2,7 +2,7 @@
 
 import { Check, MapPin, MessageCircle, Phone, Tag } from "lucide-react";
 import type { Draft } from "@/lib/onboarding/types";
-import { categoryName } from "@/lib/onboarding/catalog";
+import { useCatalog } from "@/lib/onboarding/use-catalog";
 import { BrandMark } from "@/components/brand";
 import { cn, formatPrice } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ import { cn, formatPrice } from "@/lib/utils";
  * Toujours rendue en thème sombre, comme le site public.
  */
 export function ProfilePreview({ d, compact }: { d: Draft; compact: boolean }) {
+  const { categoryName } = useCatalog();
   const cat = categoryName(d.primaryCategory ?? d.categories[0] ?? "");
   const photos = d.photos.filter((p) => p.status === "ready");
   const amount = Number(d.pkg.amount) || 0;

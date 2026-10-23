@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, Check, Loader2, Plus, X } from "lucide-react";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { useOnboarding } from "@/lib/onboarding/store";
-import { CITIES, LANGUAGES, ZONE_SUGGESTIONS } from "@/lib/onboarding/catalog";
+import { LANGUAGES, ZONE_SUGGESTIONS } from "@/lib/onboarding/catalog";
+import { useCatalog, withCurrent } from "@/lib/onboarding/use-catalog";
+import { PUBLIC_HOST } from "@/lib/config";
 import { getSupabase } from "@/lib/supabase/client";
 import { PHOTO_ACCEPT } from "@/lib/media";
 import { slugify } from "@/lib/utils";
@@ -38,6 +40,7 @@ function useSlugStatus(slug: string, vendorId?: string): "idle" | "checking" | "
 
 export function StepEntreprise() {
   const { draft, update, errors, setAvatar, user } = useOnboarding();
+  const { cities } = useCatalog();
   const [slugTouched, setSlugTouched] = useState(!!draft.slug && draft.slug !== slugify(draft.name));
   const [zoneInput, setZoneInput] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -101,7 +104,7 @@ export function StepEntreprise() {
           hint={slugStatus === "free" ? <span className="inline-flex items-center gap-1 text-success"><Check className="size-3.5" aria-hidden />Adresse disponible</span> : undefined}>
           {({ id, describedBy, invalid }) => (
             <div className="flex items-center rounded-xl border border-line-strong bg-surface focus-within:border-gold focus-within:ring-2 focus-within:ring-gold/40">
-              <span className="shrink-0 pl-4 text-[15px] text-muted">ndoa.cd/prestataire/</span>
+              <span className="shrink-0 pl-4 text-[15px] text-muted">{PUBLIC_HOST}/prestataires/</span>
               <input id={id} value={draft.slug} onChange={(e) => { setSlugTouched(true); update({ slug: slugify(e.target.value) }); }}
                 className="h-12 w-full min-w-0 bg-transparent pr-4 text-[15px] outline-none" aria-describedby={describedBy} aria-invalid={invalid || undefined} />
               {slugStatus === "checking" && <Loader2 className="mr-3 size-4 shrink-0 animate-spin text-muted" aria-label="Vérification" />}
@@ -128,7 +131,7 @@ export function StepEntreprise() {
           <Field id="f-city" label="Ville principale" error={errors.city}>
             {({ id, describedBy, invalid }) => (
               <Select id={id} value={draft.city} onChange={(e) => update({ city: e.target.value })} aria-describedby={describedBy} aria-invalid={invalid || undefined}>
-                {CITIES.map((c) => <option key={c}>{c}</option>)}
+                {withCurrent(cities, draft.city).map((c) => <option key={c}>{c}</option>)}
               </Select>
             )}
           </Field>

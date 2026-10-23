@@ -11,7 +11,7 @@ const loadSupabase = async () => (DEMO ? null : (await import("@/lib/supabase/cl
 export type Method = "email" | "phone";
 export type Channel = "sms" | "whatsapp";
 export type SessionUser = { id: string; fullName: string; email?: string; phone?: string };
-export type Pending = { method: Method; email?: string; phone?: string; fullName: string; channel: Channel; purpose: "signup" | "login" };
+export type Pending = { method: Method; email?: string; phone?: string; fullName: string; channel: Channel; purpose: "signup" | "login"; /** page après vérification (compte couple : /mon-compte) */ next?: string };
 
 const K_USER = "eclat.demo.user";
 const K_PENDING = "eclat.auth.pending";
@@ -42,10 +42,10 @@ function fr(message: string) {
 }
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /** Lien de confirmation de l’e-mail : retour sur /auth/callback, puis création de la vitrine */
-const emailRedirectTo = () => `${location.origin}/auth/callback?source=email&suite=${encodeURIComponent("/onboarding/activite")}`;
+const emailRedirectTo = (next = "/onboarding/activite") => `${location.origin}/auth/callback?source=email&suite=${encodeURIComponent(next)}`;
 
-export async function signUp(input: { method: Method; email?: string; phone?: string; password: string; fullName: string; channel: Channel }) {
-  const pending: Pending = { method: input.method, email: input.email, phone: input.phone, fullName: input.fullName, channel: input.channel, purpose: "signup" };
+export async function signUp(input: { method: Method; email?: string; phone?: string; password: string; fullName: string; channel: Channel; next?: string }) {
+  const pending: Pending = { method: input.method, email: input.email, phone: input.phone, fullName: input.fullName, channel: input.channel, purpose: "signup", next: input.next };
   const sb = await loadSupabase();
   if (!sb) {
     await wait(700);
@@ -54,7 +54,7 @@ export async function signUp(input: { method: Method; email?: string; phone?: st
   }
   const { error } =
     input.method === "email"
-      ? await sb.auth.signUp({ email: input.email!, password: input.password, options: { data: { full_name: input.fullName }, emailRedirectTo: emailRedirectTo() } })
+      ? await sb.auth.signUp({ email: input.email!, password: input.password, options: { data: { full_name: input.fullName }, emailRedirectTo: emailRedirectTo(input.next) } })
       : await sb.auth.signUp({ phone: input.phone!, password: input.password, options: { data: { full_name: input.fullName }, channel: input.channel } });
   if (error) return { ok: false as const, error: fr(error.message) };
   write(K_PENDING, pending);
@@ -105,7 +105,7 @@ export async function resendOtp(channel: Channel) {
   if (!sb) { await wait(500); return { ok: true as const }; }
   const { error } =
     p.method === "email"
-      ? await sb.auth.resend({ type: "signup", email: p.email!, options: { emailRedirectTo: emailRedirectTo() } })
+      ? await sb.auth.resend({ type: "signup", email: p.email!, options: { emailRedirectTo: emailRedirectTo(p.next) } })
       : await sb.auth.resend({ type: "sms", phone: p.phone!, options: { channel } as never });
   return error ? { ok: false as const, error: fr(error.message) } : { ok: true as const };
 }

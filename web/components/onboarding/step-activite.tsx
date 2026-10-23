@@ -3,12 +3,13 @@
 import { motion } from "motion/react";
 import { Check, Star } from "lucide-react";
 import { useOnboarding } from "@/lib/onboarding/store";
-import { CATEGORIES, U, categoryName } from "@/lib/onboarding/catalog";
+import { useCatalog } from "@/lib/onboarding/use-catalog";
 import { cn } from "@/lib/utils";
 import { StepFooter, StepHeader, ToggleChip } from "./step-ui";
 
 export function StepActivite() {
   const { draft, update, errors } = useOnboarding();
+  const { categories, categoryName } = useCatalog();
   const sel = draft.categories;
   const primary = draft.primaryCategory && sel.includes(draft.primaryCategory) ? draft.primaryCategory : sel[0];
 
@@ -27,7 +28,7 @@ export function StepActivite() {
       <div role="group" aria-label="Activités" aria-describedby={errors.categories ? "cat-err" : undefined}
         data-error={!!errors.categories || undefined} tabIndex={errors.categories ? -1 : undefined}
         className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
-        {CATEGORIES.map((c, i) => {
+        {categories.map((c, i) => {
           const on = sel.includes(c.slug);
           return (
             <motion.button key={c.slug} type="button" aria-pressed={on} onClick={() => toggle(c.slug)}
@@ -35,14 +36,14 @@ export function StepActivite() {
               className={cn("group relative isolate flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-2xl p-3 text-left ring-1 transition-shadow sm:aspect-[16/10]",
                 on ? "ring-2 ring-gold" : "ring-line hover:ring-gold/60")}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={U(c.img, 500)} alt="" loading="lazy" className={cn("absolute inset-0 -z-20 size-full object-cover transition-transform duration-700 group-hover:scale-105", on ? "brightness-90" : "brightness-[.62] saturate-[.8]")} />
+              <img src={c.imageUrl} alt="" loading="lazy" className={cn("absolute inset-0 -z-20 size-full object-cover transition-transform duration-700 group-hover:scale-105", on ? "brightness-90" : "brightness-[.62] saturate-[.8]")} />
               <span className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
               <span className={cn("absolute right-2.5 top-2.5 grid size-6 place-items-center rounded-full border transition-all",
                 on ? "border-gold bg-gold text-on-gold" : "border-white/50 bg-black/30 text-transparent")}>
                 <Check className="size-3.5" aria-hidden />
               </span>
               <span className="font-display text-base leading-tight text-white sm:text-lg">{c.name}</span>
-              <span className="mt-0.5 hidden text-xs text-white/75 sm:block">{c.hint}</span>
+              <span className="mt-0.5 hidden text-xs text-white/75 sm:block">{c.hint ?? ""}</span>
             </motion.button>
           );
         })}

@@ -2,7 +2,8 @@
 /* =========================================================
    NDOA Wedding — génération SEO du site public
    ---------------------------------------------------------
-   node scripts/build-seo.mjs            (SITE_URL=https://ndoa.cd par défaut)
+   node scripts/build-seo.mjs
+   Adresse du site : SITE_URL, sinon sur Vercel le domaine de production du projet, sinon https://ndoa.cd.
 
    1. Remplit le bloc <!-- SEO:START --> … <!-- SEO:END --> de chaque page :
       title, description, canonical, Open Graph (WhatsApp, Facebook,
@@ -10,14 +11,16 @@
    2. Génère une page statique par prestataire : /prestataire/<slug>/index.html
       (URL propre, aperçu de partage correct même sans JavaScript).
    3. Écrit sitemap.xml et robots.txt.
-   À relancer après chaque ajout de prestataire ou de page.
+   Profils : vitrines publiées lues dans Supabase (clé publique), sinon profils de démonstration.
+   SEO_DEMO=1 force les profils de démo. À relancer après chaque publication de vitrine.
    ========================================================= */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const SITE = (process.env.SITE_URL || "https://ndoa.cd").replace(/\/$/, "");
+const VERCEL_HOST = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+const SITE = (process.env.SITE_URL || (VERCEL_HOST ? `https://${VERCEL_HOST}` : "https://ndoa.cd")).replace(/\/$/, "");
 const OG_DEFAULT = `${SITE}/assets/brand/og-ndoa.jpg`;
 const TODAY = new Date().toISOString().slice(0, 10);
 
@@ -80,9 +83,26 @@ for (const p of PAGES) {
 }
 
 /* ---------- Profils prestataires ---------- */
-// Les données de démonstration vivent dans prestataire.html (P, CAT, BASE). En production,
-// remplacer ce bloc par une lecture de la vue publique Supabase (vendors publiés).
+// Vitrines publiées lues dans Supabase avec la clé publique (celle de assets/ndoa.js, ou SUPABASE_URL /
+// SUPABASE_ANON_KEY). Sans réponse ou sans vitrine publiée : profils de démonstration de prestataire.html.
 const tpl = read("prestataire.html");
+const ndoaJs = read("assets/ndoa.js");
+const SB_URL = (process.env.SUPABASE_URL || ndoaJs.match(/SUPABASE_URL: '([^']*)'/)?.[1] || "").replace(/\/$/, "");
+const SB_KEY = process.env.SUPABASE_ANON_KEY || ndoaJs.match(/SUPABASE_ANON_KEY: '([^']*)'/)?.[1] || "";
+async function publishedVendors() {
+  if (!SB_URL || !SB_KEY || process.env.SEO_DEMO === "1") return null;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/get_public_vendors?p_limit=1000`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }, signal: AbortSignal.timeout(15000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const list = await r.json();
+    return Array.isArray(list) && list.length ? list : null;
+  } catch (e) {
+    console.warn(`Supabase indisponible (${e.message}) : profils de démonstration`);
+    return null;
+  }
+}
+const storageUrl = (p) => `${SB_URL}/storage/v1/object/public/vendor-media/${String(p).split("/").map(encodeURIComponent).join("/")}`;
+const LIVE = await publishedVendors();
 const grab = (name, open, close) => {
   const start = tpl.indexOf(`const ${name} = ${open}`);
   if (start < 0) throw new Error(`Données ${name} introuvables dans prestataire.html`);
@@ -95,24 +115,34 @@ const CAT = new Function(`return ${grab("CAT", "{", "}")}`)();
 const BASE = new Function("P", `return ${grab("BASE", "[", "]")}`)(P);
 const img = (id, w, h) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=75`;
 
-const profiles = [];
-for (const v of BASE) {
-  const label = CAT[v.cat]?.[0] ?? "Prestataire";
+// Format commun : vitrine publiée (Supabase) ou profil de démo
+const demo = BASE.map((v) => ({ slug: v.slug, name: v.name, label: CAT[v.cat]?.[0] ?? "Prestataire", city: v.city, rating: v.rating,
+  reviews: v.reviews, price: v.price, image: img(v.gallery[0], 1200, 630) }));
+const live = (LIVE ?? []).map((v) => ({ slug: v.slug, name: v.name, label: v.category_name || "Prestataire", city: v.city,
+  rating: Number(v.rating_avg) || 0, reviews: v.rating_count || 0, price: v.price_from == null ? null : Number(v.price_from),
+  image: v.cover_path ? storageUrl(v.cover_path) : OG_DEFAULT, description: v.tagline }));
+
+function profilePage(v, noindex) {
   const url = `${SITE}/prestataire/${v.slug}/`;
-  const rating = String(v.rating).replace(".", ",");
-  const title = `${v.name} — ${label} à ${v.city} | NDOA Wedding`;
-  const description = `${v.name}, ${label.toLowerCase()} à ${v.city}. Note ${rating}/5 sur ${v.reviews} avis, à partir de ${v.price} USD. Réalisations, tarifs, disponibilités et devis gratuit.`;
+  const rating = String(v.rating.toFixed(1)).replace(".", ",");
+  const title = `${v.name} — ${v.label} à ${v.city} | NDOA Wedding`;
+  const facts = [v.reviews ? `Note ${rating}/5 sur ${v.reviews} avis` : "", v.price != null ? `à partir de ${v.price} USD` : "tarifs sur devis"].filter(Boolean).join(", ");
+  const description = `${v.name}, ${v.label.toLowerCase()} à ${v.city}. ${facts.charAt(0).toUpperCase() + facts.slice(1)}. Réalisations, tarifs, disponibilités et devis gratuit.`;
   const jsonld = {
-    "@context": "https://schema.org", "@type": "LocalBusiness", name: v.name, url, image: img(v.gallery[0], 1200, 630),
-    description, priceRange: `À partir de ${v.price} USD`, currenciesAccepted: "USD, CDF",
+    "@context": "https://schema.org", "@type": "LocalBusiness", name: v.name, url, image: v.image,
+    description: v.description || description, currenciesAccepted: "USD, CDF",
+    ...(v.price != null && { priceRange: `À partir de ${v.price} USD` }),
     address: { "@type": "PostalAddress", addressLocality: v.city, addressCountry: "CD" }, areaServed: v.city,
-    aggregateRating: { "@type": "AggregateRating", ratingValue: v.rating, reviewCount: v.reviews, bestRating: 5 },
+    ...(v.reviews && { aggregateRating: { "@type": "AggregateRating", ratingValue: v.rating, reviewCount: v.reviews, bestRating: 5 } }),
   };
-  const block = seoBlock({ title, description, url, image: img(v.gallery[0], 1200, 630), imageAlt: `Réalisation de ${v.name}`, type: "profile", jsonld });
+  const block = seoBlock({ title, description, url, image: v.image, imageAlt: `Réalisation de ${v.name}`, type: "profile", jsonld, noindex });
   // Le script de la page lit le slug dans l’URL (/prestataire/<slug>/)
   write(`prestataire/${v.slug}/index.html`, inject(tpl, block, "prestataire.html"));
-  profiles.push(url);
+  return url;
 }
+// Vitrines réelles indexées ; les profils de démo restent servis (liens des témoignages) mais hors index
+const profiles = (live.length ? live : demo).map((v) => profilePage(v, false));
+if (live.length) for (const v of demo) if (!live.some((x) => x.slug === v.slug)) profilePage(v, true);
 // Gabarit générique (?slug=…) : jamais indexé, les URL propres font foi
 write("prestataire.html", inject(tpl, seoBlock({ title: "Prestataire — NDOA Wedding", description: "Profil prestataire NDOA Wedding : réalisations, tarifs, avis et demande de devis.", url: `${SITE}/prestataire.html`, noindex: true }), "prestataire.html"));
 
@@ -133,4 +163,4 @@ Disallow: /prestataire.html
 
 Sitemap: ${SITE}/sitemap.xml
 `);
-console.log(`SEO : ${PAGES.length} pages, ${profiles.length} profils, sitemap de ${urls.length} URL (${SITE})`);
+console.log(`SEO : ${PAGES.length} pages, ${profiles.length} profils ${live.length ? "publiés (Supabase)" : "de démonstration"}, sitemap de ${urls.length} URL (${SITE})`);

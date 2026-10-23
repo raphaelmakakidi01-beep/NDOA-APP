@@ -55,8 +55,8 @@ export function OtpForm() {
       setTimeout(() => refs.current[0]?.focus(), 30);
       return;
     }
-    toast.success("Compte vérifié", { description: "Créons maintenant votre vitrine." });
-    router.push("/onboarding/activite");
+    toast.success("Compte vérifié", { description: pending?.next ? "Bienvenue sur NDOA Wedding." : "Créons maintenant votre vitrine." });
+    router.push(pending?.next ?? "/onboarding/activite");
   }
 
   function setAt(i: number, v: string) {
@@ -151,20 +151,20 @@ function EmailLinkWait({ pending, cooldown, onResend }: { pending: Pending; cool
     let alive = true;
     const check = async () => {
       if (alive && (await confirmedBySession())) {
-        toast.success("Adresse confirmée", { description: "Créons maintenant votre vitrine." });
-        router.push("/onboarding/activite");
+        toast.success("Adresse confirmée", { description: pending.next ? "Bienvenue sur NDOA Wedding." : "Créons maintenant votre vitrine." });
+        router.push(pending.next ?? "/onboarding/activite");
       }
     };
     const t = setInterval(check, 5000);
     window.addEventListener("focus", check);
     return () => { alive = false; clearInterval(t); window.removeEventListener("focus", check); };
-  }, [router]);
+  }, [router, pending.next]);
 
   async function manualCheck() {
     setChecking(true);
     const ok = await confirmedBySession();
     setChecking(false);
-    if (ok) router.push("/onboarding/activite");
+    if (ok) router.push(pending.next ?? "/onboarding/activite");
     else setNotYet(true);
   }
 

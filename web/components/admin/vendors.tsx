@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/bits";
 import { exportVendors, listVendors, reviewVendors } from "@/lib/admin/api";
 import { DEFAULT_FILTERS, PLAN_LABEL, REJECT_REASONS, STATUS_META, type AdminVendorRow, type VendorFilters } from "@/lib/admin/types";
-import { CATEGORIES, CITIES } from "@/lib/onboarding/catalog";
+import { useCatalog } from "@/lib/onboarding/use-catalog";
 import { cn } from "@/lib/utils";
 import { useAdmin } from "./context";
 import { Check, FilterSelect, PageHeader, Pagination, Panel, ReasonDialog, SearchBox, SortTh, VendorStatusTag, downloadCsv, fmtDate } from "./ui";
@@ -32,6 +32,7 @@ export function VendorsTable() {
   const path = usePathname();
   const params = useSearchParams();
   const { refreshPending } = useAdmin();
+  const { categories, cities } = useCatalog();
   const f = React.useMemo(() => filtersFrom(new URLSearchParams(params.toString())), [params]);
 
   const [q, setQ] = React.useState(f.q);
@@ -128,8 +129,8 @@ export function VendorsTable() {
         {/* Filtres */}
         <div className="grid gap-3 border-b border-line p-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1.4fr)_repeat(4,minmax(0,1fr))_auto] lg:items-end">
           <SearchBox value={q} onChange={setQ} placeholder="Rechercher un nom, un slug, une ville" className="sm:col-span-2 lg:col-span-1" />
-          <FilterSelect label="Catégorie" value={f.category} onChange={(v) => update({ category: v })} options={[{ value: "", label: "Toutes" }, ...CATEGORIES.map((c) => ({ value: c.slug, label: c.name }))]} />
-          <FilterSelect label="Ville" value={f.city} onChange={(v) => update({ city: v })} options={[{ value: "", label: "Toutes" }, ...CITIES.map((c) => ({ value: c, label: c }))]} />
+          <FilterSelect label="Catégorie" value={f.category} onChange={(v) => update({ category: v })} options={[{ value: "", label: "Toutes" }, ...categories.map((c) => ({ value: c.slug, label: c.name }))]} />
+          <FilterSelect label="Ville" value={f.city} onChange={(v) => update({ city: v })} options={[{ value: "", label: "Toutes" }, ...cities.map((c) => ({ value: c, label: c }))]} />
           <FilterSelect label="Statut" value={f.status} onChange={(v) => update({ status: v as VendorFilters["status"] })} options={[{ value: "", label: "Tous" }, ...Object.entries(STATUS_META).map(([k, m]) => ({ value: k, label: m.label }))]} />
           <FilterSelect label="Abonnement" value={f.plan} onChange={(v) => update({ plan: v as VendorFilters["plan"] })} options={[{ value: "", label: "Tous" }, ...Object.entries(PLAN_LABEL).map(([k, l]) => ({ value: k, label: l }))]} />
           {filtered && <Button variant="ghost" size="sm" className="h-9 justify-self-start" onClick={() => { setQ(""); router.replace(path); }}><X aria-hidden />Effacer</Button>}

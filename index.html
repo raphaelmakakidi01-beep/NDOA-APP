@@ -27,7 +27,17 @@
 <link rel="preconnect" href="https://images.unsplash.com">
 <link rel="preload" href="/assets/fonts/bodoni-moda-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/manrope-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=1600&q=72" imagesrcset="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=72 800w, https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=1200&q=72 1200w, https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=1600&q=72 1600w" imagesizes="100vw" fetchpriority="high">
+<link rel="preconnect" href="https://ekjfvoqlguxflpxvnqjj.supabase.co" crossorigin>
+<script>
+/* 1re image du héros préchargée : celle choisie dans l'admin lors de la dernière visite, sinon celle de démo */
+(() => {
+  let h = null;
+  try { h = JSON.parse(localStorage.getItem('ndoa.hero') || 'null'); } catch { /* stockage indisponible */ }
+  const u = w => `https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=${w}&q=72`;
+  const l = Object.assign(document.createElement('link'), {rel:'preload', as:'image', href:h?.src || u(1600), imageSrcset:h ? h.srcset : [800, 1200, 1600].map(w => `${u(w)} ${w}w`).join(', '), imageSizes:'100vw', fetchPriority:'high'});
+  document.head.append(l);
+})();
+</script>
 <link rel="icon" href="/assets/brand/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32.png">
 <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
@@ -80,7 +90,7 @@
     <div class="hw-head">
       <span class="hw-num" id="heroCount" aria-hidden="true">01</span>
       <div class="hero-bars" id="heroBars" role="group" aria-label="Choisir une réalisation"></div>
-      <span class="hw-num" aria-hidden="true">05</span>
+      <span class="hw-num" id="heroTotal" aria-hidden="true">05</span>
       <button class="hero-pause" id="heroPause" aria-label="Mettre le diaporama en pause">
         <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect x="2" y="1" width="2.6" height="10" rx="1"/><rect x="7.4" y="1" width="2.6" height="10" rx="1"/></svg>
       </button>
@@ -268,7 +278,7 @@
     </div>
     <div class="cta-actions" data-reveal>
       <a class="btn btn-gold" href="https://pro.ndoa.cd/inscription" data-pro="/inscription" data-magnetic>Créer mon profil gratuitement <span class="arrow">→</span></a>
-      <a class="btn btn-ghost" href="https://pro.ndoa.cd/" data-pro="/" data-magnetic>Voir les offres</a>
+      <a class="btn btn-ghost" href="https://pro.ndoa.cd/#tarifs" data-pro="/#tarifs" data-magnetic>Voir les offres</a>
     </div>
   </div>
 </section>
@@ -345,6 +355,8 @@ window.NDOA_READY = (() => {
   const dom = new Promise(r => document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => paint(r)) : paint(r));
   return Promise.all([libs, dom]);
 })();
+// Contenu géré depuis l'admin : demandé tout de suite, en parallèle du premier rendu
+window.NDOA.home(); window.NDOA.vendors();
 </script>
 <script>
 window.NDOA_READY.then(async () => {
@@ -355,8 +367,8 @@ const yieldToMain = () => new Promise(r => setTimeout(r, 0));
 /* =========================================================
    DONNÉES DE DÉMO
    ========================================================= */
-const U = (id, w = 900, h) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}${h ? `&h=${h}` : ''}&q=72`;
-const SRCSET = (id, w, h) => [Math.round(w / 2), w].map(x => `${U(id, x, h ? Math.round(h * x / w) : undefined)} ${x}w`).join(', ');
+// Images : identifiant Unsplash (démo) ou fichier du stockage Supabase (contenu réel), voir assets/ndoa.js
+const U = window.NDOA.img, SRCSET = window.NDOA.srcset;
 const P = {
   coupleA:'1519741497674-611481863552', weddingB:'1511285560929-80b456fea0bc', coupleC:'1465495976277-4387d4b0b4c6',
   weddingD:'1522673607200-164d1b6ce486', bride:'1520854221256-17451cc331bf', weddingE:'1606216794074-735e91aa2c92',
@@ -373,7 +385,7 @@ const P = {
   a10:'1517841905240-472988babdf9', a11:'1507679799987-c73779587ccf', a12:'1560250097-0b93528c311a'
 };
 
-const CATS = [
+let CATS = [
   {key:'photographe', name:'Photographes', html:'Photo<em>graphes</em>', count:412, img:P.coupleC, size:'big'},
   {key:'salle', name:'Salles de fête', count:186, img:P.venue, size:'tall'},
   {key:'traiteur', name:'Traiteurs', count:241, img:P.catering},
@@ -388,7 +400,7 @@ const CATS = [
 ];
 const CAT_LABEL = {photographe:'Photographe', salle:'Salle de fête', traiteur:'Traiteur', dj:'DJ', videaste:'Vidéaste', decorateur:'Décorateur', fleuriste:'Fleuriste', maquilleur:'Maquilleuse', drone:'Pilote de drone', voiture:'Location de voitures', planner:'Wedding planner'};
 
-const VENDORS = [
+const DEMO_VENDORS = [
   {slug:'studio-lumiere-mbala', name:'Studio Lumière Mbala', cat:'photographe', city:'Kinshasa', rating:4.9, reviews:214, price:850, likes:3120, avatar:P.a6, gallery:[P.coupleA,P.weddingB,P.bride], quote:'Je photographie les mariés comme des icônes : avec lumière, audace et vérité.', story:'Golden hour sur le boulevard du 30 Juin'},
   {slug:'kasa-films', name:'Kasa Films', cat:'videaste', city:'Kinshasa', rating:4.8, reviews:167, price:1200, likes:2410, avatar:P.a2, gallery:[P.camera2,P.weddingD,P.coupleC], story:'Making-of d’un clip de mariage'},
   {slug:'skyshot-congo', name:'SkyShot Congo', cat:'drone', city:'Lubumbashi', rating:4.7, reviews:58, price:350, likes:980, avatar:P.a9, gallery:[P.drone,P.venue,P.weddingE], story:'Vue aérienne du cortège'},
@@ -402,17 +414,18 @@ const VENDORS = [
   {slug:'elegance-events', name:'Élégance Events', cat:'planner', city:'Lubumbashi', rating:4.9, reviews:131, price:2500, likes:2980, avatar:P.a10, gallery:[P.table,P.champagne,P.weddingE], quote:'Le jour J, les mariés n’ont qu’une mission : vivre l’instant.', story:'Répétition générale au Pullman'},
   {slug:'ngoma-visuals', name:'Ngoma Visuals', cat:'photographe', city:'Goma', rating:4.8, reviews:102, price:700, likes:1720, avatar:P.a1, gallery:[P.weddingF,P.coupleA,P.rings], story:'Séance couple au bord du lac Kivu'}
 ];
-const bySlug = Object.fromEntries(VENDORS.map(v => [v.slug, v]));
+let VENDORS = DEMO_VENDORS;
+const bySlug = Object.fromEntries(DEMO_VENDORS.map(v => [v.slug, v]));
 const vendorUrl = v => `/prestataire/${v.slug}/`;
 const fmt = n => new Intl.NumberFormat('fr-FR').format(n);
 
-const HERO = [
+let HERO = [
   {img:P.coupleC, v:'studio-lumiere-mbala'},
   {img:P.venue, v:'salle-le-fleuve-dor'},
   {img:P.party, v:'dj-kinoir'},
   {img:P.bride, v:'glam-by-grace'},
   {img:P.decor, v:'maison-nkosi-deco'}
-];
+].map(s => ({img:s.img, v:bySlug[s.v]}));
 
 const TESTIMONIALS = [
   {img:P.coupleC, names:'Grâce & Patrick', city:'Kinshasa', date:'Juin 2026', rating:5, quote:'On cherchait un photographe qui comprenne <em>notre énergie</em>. On a trouvé Studio Lumière Mbala en dix minutes. Nos photos ressemblent à une couverture de magazine.', v:'studio-lumiere-mbala'},
@@ -420,6 +433,33 @@ const TESTIMONIALS = [
   {img:P.weddingB, names:'Rachel & Héritier', city:'Goma', date:'Février 2026', rating:5, quote:'Glam by Grâce m’a rendue <em>lumineuse</em> du matin jusqu’à la dernière danse. Toutes mes amies me demandent son contact.', v:'glam-by-grace'},
   {img:P.weddingD, names:'Merveille & Cédric', city:'Matadi', date:'Décembre 2025', rating:4, quote:'Les stories nous ont permis de voir les décors <em>en vrai</em> avant de réserver. Fleurs de Matadi a dépassé nos attentes.', v:'fleurs-de-matadi'}
 ];
+
+/* =========================================================
+   CONTENU GÉRÉ DEPUIS L'ADMIN (repli : données de démo ci-dessus)
+   ========================================================= */
+// Le héros (image LCP) n'attend pas le réseau : contenu admin s'il est déjà arrivé, sinon démo puis bascule.
+const homeP = window.NDOA.home();
+let LIVE = await Promise.race([homeP, Promise.resolve(undefined)]);
+const liveSlides = L => L.slides.map(s => ({img:s.img, v:s.vendor, title:s.title, subtitle:s.subtitle, video:s.video}));
+if (LIVE?.slides.length) HERO = liveSlides(LIVE);
+const heroSet = r => SRCSET(r, 2) ? [800, 1200, 1600, 2200].map(w => `${U(r, w)} ${w}w`).join(', ') : '';
+const catLabel = k => CAT_LABEL[k] || 'Prestataire';
+const rate = v => v.reviews ? v.rating.toFixed(1).replace('.', ',') : 'Nouveau';
+const priceLabel = v => v.price == null ? 'Sur devis' : `${fmt(v.price)} USD`;
+let CITIES = ['Kinshasa','Lubumbashi','Goma','Matadi'], STORIES = [];
+const applyLive = () => {
+if (LIVE?.categories.length){
+  const SIZES = ['big','tall','','','wide','','','tall','wide','wide',''], demoCat = Object.fromEntries(CATS.map(c => [c.key, c]));
+  CATS = LIVE.categories.map((c, i) => {
+    const d = demoCat[c.key];
+    return {...c, img:c.img || d?.img || P.table, html:d && d.name === c.name ? d.html : '', size:SIZES[i % SIZES.length]};
+  });
+  LIVE.categories.forEach(c => { CAT_LABEL[c.key] = c.label; });
+}
+CITIES = LIVE?.cities.length ? LIVE.cities : CITIES;
+STORIES = LIVE?.stories.length ? LIVE.stories
+  : DEMO_VENDORS.slice(0, 10).map(v => ({...v, ring:v.avatar, frames:v.gallery.map(img => ({img, caption:v.story}))}));
+};
 
 const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const FINE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -446,23 +486,30 @@ const flash = document.getElementById('heroFlash');
 const pauseBtn = document.getElementById('heroPause');
 const DUR = 6500;
 
+let slides = [], bars = [];
+const storeHero = v => { try { v ? localStorage.setItem('ndoa.hero', JSON.stringify(v)) : localStorage.removeItem('ndoa.hero'); } catch { /* stockage indisponible */ } };
+function buildHero(live){
 slidesEl.innerHTML = HERO.map((s, i) => `
   <div class="hero-slide ph${i === 0 ? ' is-active' : ''}" aria-hidden="${i !== 0}">
-    <img src="${U(s.img, 1600)}" srcset="${U(s.img, 800)} 800w, ${U(s.img, 1200)} 1200w, ${U(s.img, 1600)} 1600w, ${U(s.img, 2200)} 2200w" sizes="100vw"
-      alt="Réalisation de ${esc(bySlug[s.v].name)}" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">
+    <img src="${U(s.img, 1600)}" srcset="${heroSet(s.img)}" sizes="100vw"
+      alt="${esc(s.title || `Réalisation de ${s.v.name}`)}" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">
   </div>`).join('');
-barsEl.innerHTML = HERO.map((s, i) => `<button class="hero-bar" style="--d:${DUR}ms" aria-label="Réalisation ${i + 1} : ${esc(bySlug[s.v].name)}"><span><i></i></span></button>`).join('');
-
-const slides = [...slidesEl.children];
-const bars = [...barsEl.children];
+barsEl.innerHTML = HERO.map((s, i) => `<button class="hero-bar" style="--d:${DUR}ms" aria-label="Réalisation ${i + 1} : ${esc(s.v.name)}"><span><i></i></span></button>`).join('');
+document.getElementById('heroTotal').textContent = String(HERO.length).padStart(2, '0');
+slides = [...slidesEl.children]; bars = [...barsEl.children];
+// la prochaine visite précharge directement la 1re image affichée (voir <head>)
+if (live) slides[0].querySelector('img').addEventListener('load', e => storeHero({src:e.target.getAttribute('src'), srcset:e.target.getAttribute('srcset') || ''}));
+}
+buildHero(!!LIVE?.slides.length);
 const H = {i:0, timer:null, start:0, remaining:DUR, paused:false};
 
 function setCredit(i, animate){
-  const v = bySlug[HERO[i].v];
+  const s = HERO[i], v = s.v;
   const apply = () => {
     credit.href = vendorUrl(v);
-    credit.querySelector('strong').textContent = v.name;
-    credit.querySelector('small').textContent = `— ${CAT_LABEL[v.cat]}, ${v.city}`;
+    credit.querySelector('.lbl').textContent = s.video ? 'Vidéo' : 'Photo';
+    credit.querySelector('strong').textContent = s.title || v.name;
+    credit.querySelector('small').textContent = `— ${s.subtitle || (s.title ? `${v.name}, ${v.city}` : `${catLabel(v.cat)}, ${v.city}`)}`;
     document.getElementById('heroCount').textContent = String(i + 1).padStart(2, '0');
     credit.classList.remove('swap');
   };
@@ -512,7 +559,7 @@ function setPaused(p){
   if (p){ clearTimeout(H.timer); H.remaining -= performance.now() - H.start; }
   else schedule(Math.max(400, H.remaining));
 }
-bars.forEach((b, k) => b.addEventListener('click', () => goTo(k)));
+barsEl.addEventListener('click', e => { const b = e.target.closest('.hero-bar'); if (b) goTo(bars.indexOf(b)); });
 pauseBtn.addEventListener('click', () => setPaused(!H.paused));
 document.addEventListener('visibilitychange', () => { if (document.hidden && !H.paused){ setPaused(true); H.autoPaused = true; } else if (!document.hidden && H.autoPaused){ H.autoPaused = false; setPaused(false); } });
 setCredit(0, false);
@@ -520,24 +567,37 @@ setBars(0);
 schedule(DUR);
 if (RM) setPaused(true); // pas d'autoplay en mouvement réduit
 
+// Contenu admin arrivé après le premier rendu : les slides choisies remplacent la démo (crédit masqué d'ici là)
+const heroPending = window.NDOA.live && LIVE === undefined;
+if (heroPending) credit.style.visibility = 'hidden';
+LIVE = await homeP;
+if (heroPending){
+  if (LIVE?.slides.length){
+    HERO = liveSlides(LIVE); H.i = 0;
+    buildHero(true); setCredit(0, false); setBars(0); schedule(DUR);
+  } else storeHero(null);
+  credit.style.visibility = '';
+} else if (!LIVE?.slides.length) storeHero(null);
+applyLive();
+
 await yieldToMain();
 /* =========================================================
    MARQUEE
    ========================================================= */
 const mq = document.getElementById('marquee');
-const group = CATS.map((c, i) => `<span class="marquee-item${i % 2 ? ' outline' : ''}">${c.name}</span><span class="marquee-star">✦</span>`).join('');
+const group = CATS.map((c, i) => `<span class="marquee-item${i % 2 ? ' outline' : ''}">${esc(c.name)}</span><span class="marquee-star">✦</span>`).join('');
 mq.innerHTML = `<div class="marquee-group">${group}</div><div class="marquee-group">${group}</div>`;
-document.getElementById('qlist').innerHTML = CATS.map(c => `<option value="${c.name}">`).join('');
+document.getElementById('qlist').innerHTML = CATS.map(c => `<option value="${esc(c.name)}">`).join('');
+document.getElementById('ville').innerHTML = '<option value="">Toutes</option>' + CITIES.map(c => `<option>${esc(c)}</option>`).join('');
 
 await yieldToMain();
 /* =========================================================
    STORIES + VISIONNEUSE
    ========================================================= */
-const STORIES = VENDORS.slice(0, 10).concat([]);
 const row = document.getElementById('storiesRow');
 row.innerHTML = STORIES.map((v, i) => `
   <button class="story" data-i="${i}">
-    <span class="story-ring"><img src="${U(v.avatar, 220)}" alt="" loading="lazy" decoding="async" width="104" height="104">${i < 2 ? '<span class="story-live">LIVE</span>' : ''}</span>
+    <span class="story-ring"><img src="${U(v.ring, 220, 220)}" alt="" loading="lazy" decoding="async" width="104" height="104">${!v.live && i < 2 ? '<span class="story-live">LIVE</span>' : ''}</span>
     <span class="sr-only">Voir la story de </span><span class="story-name">${esc(v.name)}</span>
   </button>`).join('');
 
@@ -549,22 +609,23 @@ const STORY_MS = 5000;
 
 function svRender(){
   const v = STORIES[S.v];
-  document.getElementById('svAvatar').src = U(v.avatar, 120);
+  document.getElementById('svAvatar').src = U(v.avatar, 120, 120);
   document.getElementById('svName').textContent = v.name;
-  document.getElementById('svCat').textContent = `${CAT_LABEL[v.cat]} · ${v.city}`;
-  document.getElementById('svCaption').textContent = v.story || '';
+  document.getElementById('svCat').textContent = `${catLabel(v.cat)} · ${v.city}`;
   const link = document.getElementById('svLink');
   link.href = vendorUrl(v);
   link.setAttribute('aria-label', `Voir le profil de ${v.name}`);
-  svBars.innerHTML = v.gallery.map(() => '<span><i></i></span>').join('');
+  svBars.innerHTML = v.frames.map(() => '<span><i></i></span>').join('');
   row.querySelector(`[data-i="${S.v}"]`).classList.add('seen');
   svShow(0);
 }
 function svShow(i){
   const v = STORIES[S.v];
   S.i = i;
-  svImg.src = U(v.gallery[i], 1080);
-  svImg.alt = `${v.name} — ${v.story || 'réalisation'}`;
+  const f = v.frames[i];
+  svImg.src = U(f.img, 1080);
+  svImg.alt = `${v.name} — ${f.caption || v.story || 'réalisation'}`;
+  document.getElementById('svCaption').textContent = f.caption || v.story || '';
   svImg.style.animation = 'none'; void svImg.offsetWidth; svImg.style.animation = '';
   [...svBars.children].forEach((b, k) => { b.className = k < i ? 'done' : ''; });
   void svBars.offsetWidth;
@@ -574,7 +635,7 @@ function svShow(i){
 }
 function svNext(){
   const v = STORIES[S.v];
-  if (S.i < v.gallery.length - 1) svShow(S.i + 1);
+  if (S.i < v.frames.length - 1) svShow(S.i + 1);
   else if (S.v < STORIES.length - 1){ S.v++; svRender(); }
   else svClose();
 }
@@ -627,62 +688,68 @@ await yieldToMain();
    CATÉGORIES BENTO
    ========================================================= */
 document.getElementById('bento').innerHTML = CATS.map((c, i) => `
-  <a class="cat ph ${c.size || ''}" href="/?categorie=${c.key}#feed" data-reveal data-cursor="Explorer">
+  <a class="cat ph ${c.size || ''}" href="/?categorie=${encodeURIComponent(c.key)}#feed" data-reveal data-cursor="Explorer">
     <img src="${U(c.img, c.size === 'big' ? 1200 : 700)}" srcset="${SRCSET(c.img, c.size === 'big' ? 1200 : 700)}" sizes="(max-width: 700px) 50vw, 33vw" alt="" loading="lazy" decoding="async">
     <span class="cat-num">${String(i + 1).padStart(2, '0')}</span>
     <span class="cat-go glass">${ICON.arrow}</span>
-    <h3 class="cat-name">${c.html || c.name}</h3>
-    <span class="cat-count">${fmt(c.count)} prestataires</span>
+    <h3 class="cat-name">${c.html || esc(c.name)}</h3>
+    <span class="cat-count">${c.count ? `${fmt(c.count)} prestataire${c.count > 1 ? 's' : ''}` : 'Bientôt disponibles'}</span>
   </a>`).join('');
 
 await yieldToMain();
 /* =========================================================
    RECOMMANDATIONS
    ========================================================= */
-const feat = bySlug['studio-lumiere-mbala'];
-const picks = ['glam-by-grace','dj-kinoir','maison-nkosi-deco','elegance-events'].map(s => bySlug[s]);
+// « À la une » et « Nos recommandations » (ordre choisi dans l'admin) ; sans contenu réel : sélection de démo
+const liveReco = LIVE && (LIVE.feature || LIVE.picks.length);
+const feat = liveReco ? LIVE.feature || LIVE.picks[0] : {...bySlug['studio-lumiere-mbala'], cover:P.coupleA};
+const picks = liveReco ? LIVE.picks.filter(v => v.slug !== feat.slug).slice(0, 4)
+  : ['glam-by-grace','dj-kinoir','maison-nkosi-deco','elegance-events'].map(s => bySlug[s]);
+const nameEm = n => { const w = esc(n).split(' '); return w.length > 1 ? `${w.slice(0, -1).join(' ')} <em>${w[w.length - 1]}</em>` : `<em>${w[0]}</em>`; };
 document.getElementById('recoGrid').innerHTML = `
   <article class="feature" data-reveal>
     <a href="${vendorUrl(feat)}" class="feature-media ph" data-cursor="Lire">
-      <img src="${U(P.coupleA, 1200)}" alt="Mariés photographiés par ${esc(feat.name)}" loading="lazy" decoding="async" data-parallax>
+      <img src="${U(feat.cover, 1200)}" srcset="${SRCSET(feat.cover, 1200)}" sizes="(max-width: 900px) 100vw, 55vw" alt="Réalisation de ${esc(feat.name)}" loading="lazy" decoding="async" data-parallax>
       <span class="feature-issue">À la une</span><span class="sr-only"> : lire le portrait de ${esc(feat.name)}</span>
       <span class="reco-stamp">Recommandé par NDOA</span>
     </a>
     <div class="feature-card">
-      <span class="kicker">Portrait · ${CAT_LABEL[feat.cat]}</span>
-      <h3>Studio Lumière <em>Mbala</em></h3>
-      <blockquote>« ${esc(feat.quote)} »</blockquote>
-      <div class="feature-meta"><span><b>${feat.rating}</b> ★ · ${feat.reviews} avis</span><span>${esc(feat.city)}</span><span>À partir de <b>${fmt(feat.price)} USD</b></span></div>
+      <span class="kicker">Portrait · ${esc(catLabel(feat.cat))}</span>
+      <h3>${nameEm(feat.name)}</h3>
+      ${feat.quote ? `<blockquote>« ${esc(feat.quote)} »</blockquote>` : ''}
+      <div class="feature-meta"><span>${feat.reviews ? `<b>${rate(feat)}</b> ★ · ${fmt(feat.reviews)} avis` : '<b>Nouveau</b> sur NDOA'}</span><span>${esc(feat.city)}</span>${feat.price == null ? '' : `<span>À partir de <b>${priceLabel(feat)}</b></span>`}</div>
       <a class="btn btn-dark" href="${vendorUrl(feat)}" data-magnetic>Lire le portrait <span class="arrow">→</span></a>
     </div>
   </article>
-  <div>
-    <div class="picks-title" data-reveal><h3>Coups de cœur</h3><span>04 talents</span></div>
+  ${picks.length ? `<div>
+    <div class="picks-title" data-reveal><h3>Coups de cœur</h3><span>${String(picks.length).padStart(2, '0')} talent${picks.length > 1 ? 's' : ''}</span></div>
     <div class="picks">
       ${picks.map((v, i) => `
       <a class="pick" href="${vendorUrl(v)}" data-reveal data-cursor="Voir">
         <span class="pick-media ph"><img src="${U(v.gallery[0], 600)}" srcset="${SRCSET(v.gallery[0], 600)}" sizes="(max-width: 700px) 45vw, 20vw" alt="" loading="lazy" decoding="async"></span>
         <span class="pick-num">N°0${i + 2}<span class="reco-mark">Recommandé</span></span>
         <h4>${esc(v.name)}</h4>
-        <p>${CAT_LABEL[v.cat]} · ${esc(v.city)} · ★ ${v.rating.toFixed(1)}</p>
+        <p>${esc(catLabel(v.cat))} · ${esc(v.city)} · ${v.reviews ? `★ ${rate(v)}` : 'Nouveau'}</p>
       </a>`).join('')}
     </div>
-  </div>`;
+  </div>` : ''}`;
 
 await yieldToMain();
 /* =========================================================
    FEED + FILTRES
    ========================================================= */
+// Annuaire réel dès qu'au moins une vitrine est publiée (demandé en même temps que l'accueil)
+VENDORS = (await window.NDOA.vendors()) || DEMO_VENDORS;
 const F = {cat:'all', city:'all', budget:'all'};
 const FILTER_OPTS = {
   cat:[['all','Toutes']].concat(CATS.map(c => [c.key, c.name])),
-  city:[['all','Toutes'],['Kinshasa','Kinshasa'],['Lubumbashi','Lubumbashi'],['Goma','Goma'],['Matadi','Matadi']],
+  city:[['all','Toutes']].concat(CITIES.map(c => [c, c])),
   budget:[['all','Tous'],['lt500','< 500 USD'],['500-1500','500 – 1 500'],['gt1500','> 1 500 USD'],['top','★ 4,8 et +']]
 };
 document.querySelectorAll('.chip-row').forEach(rowEl => {
   const g = rowEl.dataset.group;
   rowEl.insertAdjacentHTML('beforeend', FILTER_OPTS[g].map(([val, label]) =>
-    `<button type="button" class="chip" data-g="${g}" data-v="${val}" aria-pressed="${val === 'all'}">${label}</button>`).join(''));
+    `<button type="button" class="chip" data-g="${g}" data-v="${esc(val)}" aria-pressed="${val === 'all'}">${esc(label)}</button>`).join(''));
 });
 const matchBudget = (v, b) => b === 'all' || (b === 'lt500' && v.price < 500) || (b === '500-1500' && v.price >= 500 && v.price <= 1500) || (b === 'gt1500' && v.price > 1500) || (b === 'top' && v.rating >= 4.8);
 const feedGrid = document.getElementById('feedGrid');
@@ -702,14 +769,14 @@ function cardHTML(v){
     </div>
     <div class="card-body">
       <div class="card-top">
-        <img class="card-avatar" src="${U(v.avatar, 160)}" alt="" loading="lazy" decoding="async" width="64" height="64">
+        <img class="card-avatar" src="${U(v.avatar, 160, 160)}" alt="" loading="lazy" decoding="async" width="64" height="64">
         <button type="button" class="follow" aria-pressed="${followed.has(v.slug)}" aria-label="Suivre ${esc(v.name)}">${followed.has(v.slug) ? 'Suivi ✓' : '+ Suivre'}</button>
       </div>
-      <h3><a href="${vendorUrl(v)}" data-cursor="Voir">${esc(v.name)}</a>${ICON.verified}</h3>
-      <p class="card-sub">${CAT_LABEL[v.cat]} · ${esc(v.city)}</p>
+      <h3><a href="${vendorUrl(v)}" data-cursor="Voir">${esc(v.name)}</a>${v.verified === false ? '' : ICON.verified}</h3>
+      <p class="card-sub">${esc(catLabel(v.cat))} · ${esc(v.city)}</p>
       <div class="card-foot">
-        <span class="rating">${ICON.star}${v.rating.toFixed(1).replace('.', ',')} <small>(${v.reviews})</small></span>
-        <span class="price">à partir de<b>${fmt(v.price)} USD</b></span>
+        <span class="rating">${ICON.star}${rate(v)}${v.reviews ? ` <small>(${fmt(v.reviews)})</small>` : ''}</span>
+        <span class="price">${v.price == null ? '' : 'à partir de'}<b>${priceLabel(v)}</b></span>
       </div>
     </div>
   </article>`;
@@ -745,7 +812,7 @@ document.getElementById('feedReset').addEventListener('click', () => {
 feedGrid.addEventListener('click', e => {
   const like = e.target.closest('.like'), fol = e.target.closest('.follow');
   if (!like && !fol) return;
-  const slug = e.target.closest('.card').dataset.slug, v = bySlug[slug];
+  const slug = e.target.closest('.card').dataset.slug, v = VENDORS.find(x => x.slug === slug);
   if (like){
     const on = !liked.has(slug); on ? liked.add(slug) : liked.delete(slug);
     like.setAttribute('aria-pressed', on);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { DemoBanner } from "@/components/brand";
-import { PUBLIC_SITE_URL } from "@/lib/config";
 import { GoogleButton, OrSeparator } from "./google-button";
 import { PhoneInput } from "./phone-input";
 import { signUp, type Channel } from "@/lib/auth";
@@ -30,6 +29,10 @@ export function SignupForm() {
   const [terms, setTerms] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [busy, setBusy] = useState(false);
+  // ?compte=couple : compte facultatif des mariés (favoris, suivis, historique) au lieu d’une vitrine
+  const [couple, setCouple] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture unique de l’adresse au montage
+  useEffect(() => { setCouple(new URLSearchParams(location.search).get("compte") === "couple"); }, []);
 
   const missing = passwordRules.filter((r) => !r.test(password));
   const strength = passwordRules.length - missing.length;
@@ -55,6 +58,7 @@ export function SignupForm() {
       method, fullName: fullName.trim(), password, channel,
       email: method === "email" ? email.trim().toLowerCase() : undefined,
       phone: method === "phone" ? toE164(country, phone) : undefined,
+      next: couple ? "/mon-compte" : undefined,
     });
     setBusy(false);
     if (!r.ok) { toast.error(r.error); return; }
@@ -64,8 +68,8 @@ export function SignupForm() {
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-4">
       <div className="mb-1">
-        <h1 className="font-display text-[2rem] leading-[1.05] sm:text-[2.25rem]">Créez votre <em className="text-gold-ink">vitrine</em></h1>
-        <p className="mt-1.5 text-[15px] text-muted">Gratuit et sans engagement.</p>
+        <h1 className="font-display text-[2rem] leading-[1.05] sm:text-[2.25rem]">Créez votre <em className="text-gold-ink">{couple ? "compte" : "vitrine"}</em></h1>
+        <p className="mt-1.5 text-[15px] text-muted">{couple ? "Facultatif : gardez vos favoris, vos prestataires suivis et vos demandes de devis." : "Gratuit et sans engagement."}</p>
       </div>
 
       <GoogleButton />
@@ -144,14 +148,14 @@ export function SignupForm() {
         <label className="flex cursor-pointer items-start gap-2.5 text-[13px] leading-relaxed text-muted">
           <input id="f-terms" type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)}
             className="mt-0.5 size-4 shrink-0 accent-[#C4975A]" aria-invalid={!!errors.terms || undefined} aria-describedby={errors.terms ? "terms-err" : undefined} />
-          <span>J’accepte les <a href={`${PUBLIC_SITE_URL}/cgu.html`} target="_blank" rel="noopener" className={linkCls}>conditions</a> et la <a href={`${PUBLIC_SITE_URL}/confidentialite.html`} target="_blank" rel="noopener" className={linkCls}>politique de confidentialité</a>.</span>
+          <span>J’accepte les <a href="/cgu" target="_blank" rel="noopener" className={linkCls}>conditions</a> et la <a href="/confidentialite" target="_blank" rel="noopener" className={linkCls}>politique de confidentialité</a>.</span>
         </label>
         {errors.terms && <p id="terms-err" role="alert" className="text-[13px] font-medium text-danger">{errors.terms}</p>}
       </div>
 
       <Button type="submit" size="lg" loading={busy} className="mt-1 w-full">Créer mon compte</Button>
       <p className="text-center text-sm text-muted">
-        Déjà inscrit ? <Link href="/connexion" className={linkCls}>Se connecter</Link>
+        Déjà inscrit ? <Link href={couple ? "/connexion?suite=/mon-compte&compte=couple" : "/connexion"} className={linkCls}>Se connecter</Link>
       </p>
       <DemoBanner className="justify-center">Code de vérification : <b>123456</b>.</DemoBanner>
     </form>

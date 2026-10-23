@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
@@ -38,6 +38,10 @@ function OAuthError() {
 const nextFromUrl = () => safeNext(new URLSearchParams(location.search).get("suite"));
 
 export function LoginForm() {
+  // compte couple (?compte=couple) : le lien d’inscription garde ce parcours
+  const [signupHref, setSignupHref] = useState("/inscription");
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture unique de l’adresse au montage
+  useEffect(() => { if (new URLSearchParams(location.search).get("compte") === "couple") setSignupHref("/inscription?compte=couple"); }, []);
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -95,7 +99,7 @@ export function LoginForm() {
       </div>
       <Button type="submit" size="lg" loading={busy} className="mt-1 w-full">Se connecter</Button>
       <p className="text-center text-sm text-muted">
-        Pas encore de compte ? <Link href="/inscription" className="font-semibold text-gold-ink underline-offset-4 hover:underline">Créer ma vitrine</Link>
+        Pas encore de compte ? <Link href={signupHref} className="font-semibold text-gold-ink underline-offset-4 hover:underline">{signupHref.includes("couple") ? "Créer un compte" : "Créer ma vitrine"}</Link>
       </p>
       <DemoBanner className="justify-center">Utilisez l’identifiant choisi à l’inscription.</DemoBanner>
     </form>

@@ -16,7 +16,7 @@ create schema if not exists extensions;
 create or replace function extensions.gen_random_bytes(n int) returns bytea language sql volatile as $$
   select decode(string_agg(md5(random()::text), ''), 'hex') from generate_series(1, (n / 16) + 1) $$;
 create schema auth;
-create table auth.users (id uuid primary key, email text, phone text, raw_user_meta_data jsonb default '{}');
+create table auth.users (id uuid primary key, email text, phone text, raw_user_meta_data jsonb default '{}', raw_app_meta_data jsonb default '{}', last_sign_in_at timestamptz);
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
 create function auth.role() returns text language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claim.role', true), ''), 'anon') $$;
 create schema storage;
@@ -361,6 +361,97 @@ await as(null, "anon", async () => {
   ok("Accueil public : une vitrine suspendue disparaît des recommandations", h.recommandations.length === 1);
 });
 await as(null, "service_role", () => db.exec(`alter table vendors disable trigger user; update vendors set status = 'published' where id = '${vid}'; alter table vendors enable trigger user;`));
+
+// Site public : cartes prestataires (prix « à partir de », catégorie) et annuaire
+await db.exec(`alter table packages disable trigger user;
+  insert into packages (vendor_id, name, price_amount, currency) values ('${vid}', 'Essentiel', 85000, 'USD'), ('${vid}', 'Premium', 160000, 'USD'), ('${vid}', 'Local', 1000, 'CDF');
+  insert into packages (vendor_id, name, price_amount, currency, is_visible) values ('${vid}', 'Caché', 100, 'USD', false);
+  alter table packages enable trigger user;
+  insert into vendor_categories (vendor_id, category_id, is_primary) select '${vid}', id, true from categories where slug = 'photographe' on conflict do nothing;`);
+await as(null, "anon", async () => {
+  const list = (await db.query(`select get_public_vendors() as l`)).rows[0].l;
+  const card = list.find((v) => v.slug === "studio-test");
+  ok("Annuaire public : vitrines publiées, prix « à partir de » en USD hors forfaits masqués",
+    !!card && Number(card.price_from) === 850 && card.category === "photographe" && card.category_name === "Photographe", JSON.stringify(card));
+  const h = (await db.query(`select get_home_content() as h`)).rows[0].h;
+  const photo = h.categories.find((c) => c.slug === "photographe");
+  ok("Accueil public : cartes complètes et nombre de prestataires par catégorie",
+    h.recommandations[0].price_from !== undefined && Array.isArray(h.recommandations[0].photos) && photo.vendor_count >= 1, JSON.stringify(photo));
+});
+await as(null, "service_role", () => db.exec(`alter table vendors disable trigger user; update vendors set status = 'draft' where id = '${vid}'; alter table vendors enable trigger user;`));
+await as(null, "anon", async () => {
+  const list = (await db.query(`select get_public_vendors() as l`)).rows[0].l;
+  ok("Annuaire public : une vitrine dépubliée disparaît", !list.some((v) => v.slug === "studio-test"));
+});
+await as(null, "service_role", () => db.exec(`alter table vendors disable trigger user; update vendors set status = 'published' where id = '${vid}'; alter table vendors enable trigger user;`));
+await db.exec(`update categories set is_active = false where slug = 'drone'`);
+await as(null, "anon", async () => {
+  const h = (await db.query(`select get_home_content() as h`)).rows[0].h;
+  ok("Accueil public : une catégorie désactivée disparaît", h.categories.length === 10 && !h.categories.some((c) => c.slug === "drone"));
+});
+await db.exec(`update categories set is_active = true where slug = 'drone'`);
+
+// =====================================================================
+// Étape 4 : utilisateurs, demandes, communication, équipe, réglages
+// =====================================================================
+const C = "00000000-0000-0000-0000-0000000000c0";
+await db.exec(`insert into auth.users (id, email, raw_user_meta_data) values ('${C}', 'couple@exemple.cd', '{"full_name":"Couple Test"}')`);
+await as(null, "service_role", () => db.exec(`insert into inquiries (vendor_id, couple_user_id, couple_names, email, phone) values ('${vid}', '${C}', 'Couple Test', 'couple@exemple.cd', '+243820000000')`));
+
+await as(M, "authenticated", () => expectError("Utilisateurs : liste réservée aux admins (e-mails)", `select * from admin_list_users()`, "ADMIN_ONLY"));
+await as(A, "authenticated", async () => {
+  const r = await db.query(`select email, inquiries, total from admin_list_users('couple@')`);
+  ok("Utilisateurs : recherche par e-mail avec nombre de demandes", r.rows.length === 1 && Number(r.rows[0].inquiries) === 1 && Number(r.rows[0].total) === 1, JSON.stringify(r.rows));
+});
+await as(A, "authenticated", () => expectError("Suppression : refusée pour le propriétaire d'une vitrine", `select admin_prepare_user_deletion('${X}', 'Demande RGPD')`, "HAS_VENDOR"));
+await as(A, "authenticated", () => expectError("Suppression : motif obligatoire", `select admin_prepare_user_deletion('${C}', '')`, "REASON_REQUIRED"));
+await as(A, "authenticated", () => db.query(`select admin_prepare_user_deletion('${C}', 'Demande d''effacement du couple')`));
+await as(A, "authenticated", async () => {
+  const i = (await db.query(`select couple_names, phone, couple_user_id, email from inquiries where email like 'supprime+%'`)).rows;
+  const p = (await db.query(`select deleted_at, full_name from profiles where id = '${C}'`)).rows[0];
+  const log = (await db.query(`select count(*)::int n from audit_logs where action = 'user.delete'`)).rows[0].n;
+  ok("Suppression : demandes anonymisées, profil effacé, action journalisée",
+    i.length === 1 && i[0].couple_names === "Compte supprimé" && !i[0].phone && !i[0].couple_user_id && !!p.deleted_at && !p.full_name && log >= 1, JSON.stringify(i));
+});
+
+await as(A, "authenticated", () => db.query(`select admin_nudge_vendor('${inq}')`));
+await as(A, "authenticated", () => expectError("Relance : une seule fois par 24 h et par demande", `select admin_nudge_vendor('${inq}')`, "ALREADY_NUDGED"));
+await as(E, "authenticated", async () => {
+  const n = (await db.query(`select count(*)::int n from notifications where user_id = '${E}' and type = 'inquiry_nudge'`)).rows[0].n;
+  ok("Relance : l'équipe du prestataire est notifiée", n === 1);
+});
+await as(A, "authenticated", async () => {
+  const o = (await db.query(`select admin_inquiry_overview(30) as o`)).rows[0].o;
+  ok("Demandes : vue globale (total, taux de réponse, sans réponse)", Number(o.total) >= 4 && "response_rate" in o && "unanswered_48h" in o, JSON.stringify(o).slice(0, 120));
+  const n = (await db.query(`select admin_announcement_audience('{"plans":["free"]}') as n`)).rows[0].n;
+  ok("Communication : aperçu du nombre de destinataires", Number(n) >= 2, String(n));
+});
+await as(M, "authenticated", () => expectError("Communication : réservée aux admins", `select admin_announcement_audience('{}')`, "ADMIN_ONLY"));
+
+await as(A, "authenticated", async () => {
+  await db.query(`select admin_set_role_by_email('e@x.cd', 'moderateur')`);
+  ok("Équipe : nommer un compte existant par son e-mail", (await roleOf(E)) === "moderateur");
+  await db.query(`select admin_set_role('${E}', 'user')`);
+});
+await as(A, "authenticated", () => expectError("Équipe : e-mail inconnu signalé", `select admin_set_role_by_email('inconnu@x.cd', 'moderateur')`, "NOT_FOUND"));
+
+// Réglage « validation obligatoire » désactivé : publication directe
+let direct;
+await as(X, "authenticated", async () => {
+  direct = (await db.query(`insert into vendors (owner_id, slug, name, city, phone) values ('${X}', 'direct-x', 'Direct X', 'Goma', '+243810000002') returning id`)).rows[0].id;
+});
+await as(null, "service_role", () => db.exec(`
+  alter table media disable trigger user;
+  insert into media (vendor_id, kind, storage_path, mime_type, size_bytes, status)
+    select '${direct}', 'photo', '${direct}/p' || g || '.webp', 'image/webp', 1000, 'ready' from generate_series(1, 6) g;
+  alter table media enable trigger user;
+  insert into packages (vendor_id, name, price_amount) values ('${direct}', 'Formule', 50000);
+  insert into vendor_categories (vendor_id, category_id, is_primary) values ('${direct}', 2, true);`));
+await as(A, "authenticated", () => db.exec(`update site_settings set value = 'false' where key = 'moderation.validation_obligatoire'`));
+await as(X, "authenticated", () => db.exec(`update vendors set status = 'published' where id = '${direct}'`));
+const dv = (await db.query(`select status, approved_at from vendors where id = '${direct}'`)).rows[0];
+ok("Réglage : validation désactivée → publication directe", dv.status === "published" && !!dv.approved_at, dv.status);
+await as(A, "authenticated", () => db.exec(`update site_settings set value = 'true' where key = 'moderation.validation_obligatoire'`));
 
 // Toutes les tables ont la RLS active
 const noRls = (await db.query(`select relname from pg_class c join pg_namespace n on n.oid = c.relnamespace

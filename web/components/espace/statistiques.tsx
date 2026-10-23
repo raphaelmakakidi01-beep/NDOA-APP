@@ -10,7 +10,7 @@ import { Card, CardHeader, EmptyState, Skeleton } from "@/components/ui/bits";
 import { TrendChart } from "@/components/espace/trend-chart";
 import { useEspace } from "@/lib/espace/store";
 import { OFFERS, SOURCES, type DayStat, type TrafficSource } from "@/lib/espace/types";
-import { categoryName } from "@/lib/onboarding/catalog";
+import { useCatalog } from "@/lib/onboarding/use-catalog";
 import { cn } from "@/lib/utils";
 
 const nf = (n: number) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(n);
@@ -49,6 +49,7 @@ function Locked({ locked, children, title }: { locked: boolean; children: React.
 
 export function Statistiques() {
   const { data, vendor } = useEspace();
+  const { categoryName } = useCatalog();
   const [period, setPeriod] = useState<"7" | "30" | "90">("30");
   const n = Number(period);
   const locked = !OFFERS[data.plan].advancedStats;

@@ -21,7 +21,7 @@
 <meta name="twitter:title" content="Élégance Events — Wedding planner à Lubumbashi | NDOA Wedding">
 <meta name="twitter:description" content="Élégance Events, wedding planner à Lubumbashi. Note 4,9/5 sur 131 avis, à partir de 2500 USD. Réalisations, tarifs, disponibilités et devis gratuit.">
 <meta name="twitter:image" content="https://images.unsplash.com/photo-1478146896981-b80fe463b330?auto=format&amp;fit=crop&amp;w=1200&amp;h=630&amp;q=75">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"LocalBusiness","name":"Élégance Events","url":"https://ndoa.cd/prestataire/elegance-events/","image":"https://images.unsplash.com/photo-1478146896981-b80fe463b330?auto=format&fit=crop&w=1200&h=630&q=75","description":"Élégance Events, wedding planner à Lubumbashi. Note 4,9/5 sur 131 avis, à partir de 2500 USD. Réalisations, tarifs, disponibilités et devis gratuit.","priceRange":"À partir de 2500 USD","currenciesAccepted":"USD, CDF","address":{"@type":"PostalAddress","addressLocality":"Lubumbashi","addressCountry":"CD"},"areaServed":"Lubumbashi","aggregateRating":{"@type":"AggregateRating","ratingValue":4.9,"reviewCount":131,"bestRating":5}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"LocalBusiness","name":"Élégance Events","url":"https://ndoa.cd/prestataire/elegance-events/","image":"https://images.unsplash.com/photo-1478146896981-b80fe463b330?auto=format&fit=crop&w=1200&h=630&q=75","description":"Élégance Events, wedding planner à Lubumbashi. Note 4,9/5 sur 131 avis, à partir de 2500 USD. Réalisations, tarifs, disponibilités et devis gratuit.","currenciesAccepted":"USD, CDF","priceRange":"À partir de 2500 USD","address":{"@type":"PostalAddress","addressLocality":"Lubumbashi","addressCountry":"CD"},"areaServed":"Lubumbashi","aggregateRating":{"@type":"AggregateRating","ratingValue":4.9,"reviewCount":131,"bestRating":5}}</script>
 <!-- SEO:END -->
 <meta name="theme-color" content="#0A0A0B">
 <link rel="preconnect" href="https://images.unsplash.com">
@@ -577,16 +577,19 @@ window.NDOA_READY = (() => {
   const dom = new Promise(r => document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => paint(r)) : paint(r));
   return Promise.all([libs, dom]);
 })();
+// Vitrine publiée dans Supabase (sinon profil de démo) : demandée tout de suite, en parallèle du premier rendu
+window.NDOA_SLUG = new URLSearchParams(location.search).get('slug') || (location.pathname.match(/\/prestataire\/([^/?#]+)/) || [])[1] || 'studio-lumiere-mbala';
+window.NDOA_PROFILE = window.NDOA.profile(window.NDOA_SLUG);
 </script>
 <script>
-window.NDOA_READY.then(() => {
+window.NDOA_READY.then(async () => {
 'use strict';
 
 /* =========================================================
    DONNÉES DE DÉMO
    ========================================================= */
-const U = (id, w = 900, h) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}${h ? `&h=${h}` : ''}&q=72`;
-const SRCSET = (id, w, h) => [Math.round(w / 2), w].map(x => `${U(id, x, h ? Math.round(h * x / w) : undefined)} ${x}w`).join(', ');
+// Images : identifiant Unsplash (démo) ou fichier du stockage Supabase (vitrine réelle), voir assets/ndoa.js
+const U = window.NDOA.img, SRCSET = window.NDOA.srcset;
 const P = {
   coupleA:'1519741497674-611481863552', weddingB:'1511285560929-80b456fea0bc', coupleC:'1465495976277-4387d4b0b4c6',
   weddingD:'1522673607200-164d1b6ce486', bride:'1520854221256-17451cc331bf', weddingE:'1606216794074-735e91aa2c92',
@@ -758,9 +761,6 @@ function generic(v){
 }
 
 const FULL = {'studio-lumiere-mbala':STUDIO, 'salle-le-fleuve-dor':SALLE};
-const params = new URLSearchParams(location.search);
-const slug = params.get('slug') || (location.pathname.match(/\/prestataire\/([^/?#]+)/) || [])[1] || 'studio-lumiere-mbala';
-const V = FULL[slug] || (bySlug[slug] && generic(bySlug[slug]));
 
 /* =========================================================
    OUTILS
@@ -796,6 +796,69 @@ let toastT;
 const toast = msg => { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); };
 
 /* =========================================================
+   VITRINE RÉELLE (Supabase) → même format que les profils de démo
+   ========================================================= */
+const LANG = {fr:'Français', ln:'Lingala', sw:'Swahili', en:'Anglais', kg:'Kikongo', lu:'Tshiluba'};
+const money = (amount, cur) => cur === 'USD' ? Math.round(amount / 100) : Number(amount);   // USD stockés en centimes
+const dur = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
+const longDate = d => new Date(d.length === 10 ? d + 'T12:00' : d).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'});
+function fromDb(r){
+  const m = window.NDOA.media;
+  const vc = r.vendor_categories || [], pc = (vc.find(x => x.is_primary) || vc[0])?.categories;
+  const cat = pc?.slug || '';
+  if (pc) CAT[cat] = [pc.name, pc.name_plural || pc.name];
+  const gallery = (r.media || []).filter(x => x.kind === 'photo' || x.poster_path).map(x => ({
+    img:m(x.kind === 'video' ? x.poster_path : x.storage_path), w:x.albums?.title || '', alt:x.alt || '',
+    h:Math.round(1000 * Math.min(1.5, Math.max(.62, x.width && x.height ? x.height / x.width : 1.25))),
+    video:x.kind === 'video' ? `Vidéo${x.duration_s ? ' · ' + dur(x.duration_s) : ''}` : '', src:x.kind === 'video' ? m(x.storage_path) : null,
+  }));
+  const photos = gallery.filter(g => !g.video);
+  const cover = (r.cover?.kind === 'photo' && r.cover.status === 'ready' && m(r.cover.storage_path)) || photos[0]?.img || gallery[0]?.img || '/assets/brand/og-ndoa.jpg';
+  const reviewList = (r.reviews || []).map(x => ({names:x.author_names, img:m(x.photo_path) || '/assets/brand/ndoa-monogramme.webp',
+    date:longDate(x.wedding_date || x.created_at), city:x.city || '', r:x.rating, text:x.body, reply:x.reply || ''}));
+  const dist = [5, 4, 3, 2, 1].map(n => reviewList.length ? Math.round(100 * reviewList.filter(x => x.r === n).length / reviewList.length) : 0);
+  // Champs du métier (catégorie) : listes → « En détail », nombres → chiffres clés
+  const d = r.details || {}, facts = [], kv = [];
+  (pc?.detail_schema || []).forEach(f => {
+    const val = d[f.key];
+    if (val == null || val === '' || (Array.isArray(val) && !val.length) || ['adresse', 'acces'].includes(f.key)) return;
+    if (f.type === 'list') (Array.isArray(val) ? val : String(val).split('\n')).map(x => String(x).trim()).filter(Boolean).forEach(x => facts.push(x));
+    else if (f.type === 'number') kv.push([fmt(+val), f.label.toLowerCase()]);
+    else facts.push(`${f.label} : ${val}`);
+  });
+  if (r.rating_count) kv.push([fmt(r.rating_count), 'avis vérifiés']);
+  if (photos.length) kv.push([String(photos.length), 'réalisations en ligne']);
+  const rm = r.response_minutes;
+  return {
+    live:true, id:r.id, slug:r.slug, name:r.name, nameHtml:esc(r.name), cat, label:pc?.name || 'Prestataire', city:r.city,
+    rating:Number(r.rating_avg) || 0, reviews:r.rating_count || 0, likes:r.followers_count || 0, verified:!!r.is_verified, recommended:!!r.is_recommended,
+    avatar:m(r.avatar_path) || cover, cover, zone:(r.zones || []).join(', ') || `${r.city} et environs`,
+    stats:[[r.followers_count || 0, 'Abonnés'], [r.rating_count || 0, 'Avis'], [photos.length, 'Réalisations']],
+    response:rm == null ? '' : rm < 60 ? 'moins d’une heure' : `moins de ${Math.ceil(rm / 60)} h`, responseRate:'',
+    whatsapp:r.whatsapp || '', phone:r.phone || '',
+    highlights:(r.stories || []).map(st => {
+      const items = (st.story_items || []).filter(i => i.media);
+      return {t:st.title, imgs:items.map(i => m(i.media.kind === 'video' ? i.media.poster_path : i.media.storage_path)).filter(Boolean), cap:items.find(i => i.caption)?.caption || ''};
+    }).filter(h => h.imgs.length),
+    gallery,
+    packages:(r.packages || []).map(p => ({id:p.id, name:p.name, desc:p.description || '', price:money(p.price_amount, p.currency), cur:p.currency, fixed:p.price_mode === 'fixed', featured:p.is_featured, yes:p.includes || [], no:p.excludes || []})),
+    options:(r.package_options || []).map(o => [o.name, money(o.price_amount, o.currency), o.currency, o.id]),
+    dist, reviewList,
+    about:{
+      bio:String(r.bio || r.tagline || `${r.name} accompagne les mariés à ${r.city}.`).split(/\n+/).map(x => x.trim()).filter(Boolean),
+      style:r.style_tags || [], factsTitle:'En détail', facts, kv:kv.slice(0, 4),
+      address:d.adresse || '', access:d.acces || '', mapQuery:[d.adresse, r.city].filter(Boolean).join(', '),
+      languages:(r.languages || []).map(l => LANG[l] || l),
+    },
+    availability:new Map((r.availability || []).map(a => [a.day, a.status])),
+  };
+}
+
+const slug = window.NDOA_SLUG;
+const REAL = await window.NDOA_PROFILE;
+const V = REAL ? fromDb(REAL) : FULL[slug] || (bySlug[slug] && generic(bySlug[slug]));
+
+/* =========================================================
    PROFIL INTROUVABLE
    ========================================================= */
 const main = $('#main');
@@ -814,9 +877,14 @@ document.addEventListener('click', e => {
   if (a.href.startsWith('https://wa.me/')) window.NDOA.track(V.slug, 'whatsapp_click');
   else if (a.href.startsWith('tel:')) window.NDOA.track(V.slug, 'call_click');
 });
-document.querySelector('meta[name=description]').content = `${V.name}, ${V.label.toLowerCase()} à ${V.city}. Note ${V.rating}/5 sur ${V.reviews} avis. Tarifs à partir de ${fmt(V.price)} USD. Demandez un devis gratuit.`;
-const isReco = RECO.includes(V.slug);
-const minPrice = Math.min(...V.packages.map(p => p.price));
+const isReco = V.live ? V.recommended : RECO.includes(V.slug);
+// « à partir de » : plus petit forfait en dollars, sinon en francs, sinon sur devis
+const cheapest = [...V.packages].sort((a, b) => ((a.cur || 'USD') === 'USD' ? 0 : 1) - ((b.cur || 'USD') === 'USD' ? 0 : 1) || a.price - b.price)[0];
+const minPrice = cheapest ? `${fmt(cheapest.price)}<span>${cheapest.cur || 'USD'}</span>` : 'Sur devis';
+const minPriceTxt = cheapest ? `${fmt(cheapest.price)} ${cheapest.cur || 'USD'}` : 'sur devis';
+const stats = V.stats || [[V.followers, 'Abonnés'], [V.weddings, 'Mariages'], [V.years, 'Ans d’expérience']];
+const waHref = V.whatsapp ? `https://wa.me/${digits(V.whatsapp)}` : '';
+document.querySelector('meta[name=description]').content = `${V.name}, ${V.label.toLowerCase()} à ${V.city}.${V.reviews ? ` Note ${V.rating}/5 sur ${V.reviews} avis.` : ''} Tarifs ${cheapest ? `à partir de ${minPriceTxt}` : 'sur devis'}. Demandez un devis gratuit.`;
 
 /* =========================================================
    RENDU DE LA PAGE
@@ -826,45 +894,43 @@ main.innerHTML = `
 <section class="cover" aria-label="Couverture">
   <div class="cover-media ph" id="coverMedia"><img src="${U(V.cover, 1600)}" srcset="${U(V.cover, 900)} 900w, ${U(V.cover, 1600)} 1600w, ${U(V.cover, 2200)} 2200w" sizes="100vw" alt="Réalisation de ${esc(V.name)}" fetchpriority="high"></div>
   <nav class="crumbs" aria-label="Fil d’Ariane"><div class="container"><ol>
-    <li><a href="/">Accueil</a></li><li><a href="/#categories">${CAT[V.cat][1]}</a></li><li><span aria-current="page">${esc(V.name)}</span></li>
+    <li><a href="/">Accueil</a></li><li><a href="/?categorie=${encodeURIComponent(V.cat)}#feed">${esc(CAT[V.cat]?.[1] || 'Prestataires')}</a></li><li><span aria-current="page">${esc(V.name)}</span></li>
   </ol></div></nav>
 </section>
 
 <section class="pp-head" aria-labelledby="ppName">
   <div class="container">
     <div class="pp-id">
-      <div class="pp-avatar"><img src="${U(V.avatar, 400)}" alt="Photo de profil de ${esc(V.name)}" width="184" height="184"></div>
+      <div class="pp-avatar"><img src="${U(V.avatar, 400, 400)}" alt="Photo de profil de ${esc(V.name)}" width="184" height="184"></div>
       <div class="pp-info">
         ${isReco ? '<p class="pp-reco">Recommandé par NDOA</p>' : ''}
-        <h1 class="display pp-name" id="ppName">${nameWords}${ICON.verified}</h1>
+        <h1 class="display pp-name" id="ppName">${nameWords}${V.verified === false ? '' : ICON.verified}</h1>
         <ul class="pp-meta">
           <li>${ICON.tag}${esc(V.label)}</li>
           <li>${ICON.pin}${esc(V.city)}</li>
           <li>${ICON.route}${esc(V.zone)}</li>
-          <li><svg viewBox="0 0 24 24" fill="#C4975A" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg><a href="#tab-avis" data-goto="avis"><b>${String(V.rating.toFixed(1)).replace('.', ',')}</b> · ${fmt(V.reviews)} avis</a></li>
+          <li><svg viewBox="0 0 24 24" fill="#C4975A" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg><a href="#tab-avis" data-goto="avis">${V.reviews ? `<b>${String(V.rating.toFixed(1)).replace('.', ',')}</b> · ${fmt(V.reviews)} avis` : '<b>Nouveau</b> sur NDOA'}</a></li>
         </ul>
       </div>
       <div class="pp-more">
     <div class="pp-row">
       <div class="pp-stats">
-        <div class="pp-stat"><b data-count="${V.followers}">${compact(V.followers)}</b><span>Abonnés</span></div>
-        <div class="pp-stat"><b data-count="${V.weddings}">${V.weddings}</b><span>Mariages</span></div>
-        <div class="pp-stat"><b data-count="${V.years}">${V.years}</b><span>Ans d’expérience</span></div>
+        ${stats.map(([n, l]) => `<div class="pp-stat"><b data-count="${n}">${compact(n)}</b><span>${l}</span></div>`).join('')}
       </div>
       <div class="pp-actions">
         <button class="btn btn-gold" data-quote data-magnetic>Demander un devis <span class="arrow">→</span></button>
-        <a class="act wa" href="https://wa.me/${digits(V.whatsapp)}?text=${encodeURIComponent(`Bonjour ${V.name}, je vous ai trouvé sur NDOA pour mon mariage.`)}" target="_blank" rel="noopener" aria-label="Écrire sur WhatsApp">${ICON.wa}<span class="lbl">WhatsApp</span></a>
-        <a class="act" href="tel:+${digits(V.phone)}" aria-label="Appeler">${ICON.phone}<span class="lbl">Appeler</span></a>
+        ${waHref ? `<a class="act wa" href="${waHref}?text=${encodeURIComponent(`Bonjour ${V.name}, je vous ai trouvé sur NDOA pour mon mariage.`)}" target="_blank" rel="noopener" aria-label="Écrire sur WhatsApp">${ICON.wa}<span class="lbl">WhatsApp</span></a>` : ''}
+        ${V.phone ? `<a class="act" href="tel:+${digits(V.phone)}" aria-label="Appeler">${ICON.phone}<span class="lbl">Appeler</span></a>` : ''}
         <button class="act" id="btnFollow" aria-pressed="false" aria-label="Suivre">${ICON.plus}<span class="lbl">Suivre</span></button>
         <button class="act" id="btnSave" aria-pressed="false" aria-label="Enregistrer">${ICON.save}<span class="lbl">Enregistrer</span></button>
         <button class="act" id="btnShare" aria-label="Partager">${ICON.share}<span class="lbl">Partager</span></button>
       </div>
     </div>
 
-    <div class="highlights">
+    <div class="highlights"${V.highlights.length ? '' : ' hidden'}>
       <p class="hl-title">À la une</p>
       <div class="stories-row" id="hlRow">
-        ${V.highlights.map((h, i) => `<button class="story" data-i="${i}" aria-label="Voir le highlight ${esc(h.t)}"><span class="story-ring"><img src="${U(h.imgs[0], 220)}" alt="" loading="lazy" decoding="async" width="84" height="84"></span><span class="story-name">${esc(h.t)}</span></button>`).join('')}
+        ${V.highlights.map((h, i) => `<button class="story" data-i="${i}" aria-label="Voir le highlight ${esc(h.t)}"><span class="story-ring"><img src="${U(h.imgs[0], 220, 220)}" alt="" loading="lazy" decoding="async" width="84" height="84"></span><span class="story-name">${esc(h.t)}</span></button>`).join('')}
       </div>
     </div>
       </div>
@@ -891,48 +957,48 @@ main.innerHTML = `
     </section>
 
     <section class="panel" role="tabpanel" id="p-tarifs" aria-labelledby="tab-tarifs" tabindex="0" hidden>
-      <h2 class="panel-h">Trois façons de <em>briller</em></h2>
-      <p class="panel-sub">Prix indicatifs « à partir de », ajustés selon votre date, votre lieu et vos besoins. Le devis est gratuit.</p>
+      <h2 class="panel-h">${V.packages.length === 3 ? 'Trois façons de <em>briller</em>' : V.packages.length ? 'Nos <em>formules</em>' : 'Tarifs <em>sur devis</em>'}</h2>
+      <p class="panel-sub">${V.packages.length ? 'Prix indicatifs « à partir de », ajustés selon votre date, votre lieu et vos besoins. Le devis est gratuit.' : 'Décrivez votre mariage : le prestataire vous répond avec un devis gratuit et détaillé.'}</p>
       <div class="plans">${V.packages.map((p, i) => `
         <article class="plan${p.featured ? ' featured' : ''}">
           <span class="plan-flag">Le plus demandé</span>
           <h3>${esc(p.name)}</h3>
           <p class="plan-desc">${esc(p.desc)}</p>
-          <div class="plan-price"><small>à partir de</small><b>${fmt(p.price)}<span>USD</span></b></div>
+          <div class="plan-price"><small>${p.fixed ? 'forfait' : 'à partir de'}</small><b>${fmt(p.price)}<span>${p.cur || 'USD'}</span></b></div>
           <ul>${p.yes.map(x => `<li class="yes">${ICON.yes}<span>${esc(x)}</span></li>`).join('')}${p.no.map(x => `<li class="no">${ICON.no}<span><span class="sr-only">Non inclus : </span>${esc(x)}</span></li>`).join('')}</ul>
           <button class="btn ${p.featured ? 'btn-gold' : 'btn-ghost'}" data-quote data-plan="${i}">Choisir ${esc(p.name)}</button>
         </article>`).join('')}
       </div>
-      <div class="options"><h3>Options à la carte</h3>${V.options.map(([n, pr]) => `<div class="opt"><span>${esc(n)}</span><b>+ ${fmt(pr)} USD</b></div>`).join('')}</div>
+      ${V.options.length ? `<div class="options"><h3>Options à la carte</h3>${V.options.map(([n, pr, cur]) => `<div class="opt"><span>${esc(n)}</span><b>+ ${fmt(pr)} ${cur || 'USD'}</b></div>`).join('')}</div>` : ''}
     </section>
 
     <section class="panel" role="tabpanel" id="p-avis" aria-labelledby="tab-avis" tabindex="0" hidden>
       <div class="rv-sum">
-        <div class="rv-score"><b>${V.rating.toFixed(1).replace('.', ',')}</b>${stars(V.rating)}<small>${fmt(V.reviews)} avis vérifiés</small></div>
+        <div class="rv-score"><b>${V.reviews ? V.rating.toFixed(1).replace('.', ',') : '–'}</b>${stars(V.rating)}<small>${V.reviews ? `${fmt(V.reviews)} avis vérifiés` : 'Pas encore d’avis'}</small></div>
         <div class="dist">${V.dist.map((pc, i) => `<div class="dist-row"><span>${5 - i} étoile${5 - i > 1 ? 's' : ''}</span><span class="dist-bar"><i style="--w:${pc}%"></i></span><span>${pc} %</span></div>`).join('')}</div>
       </div>
       <div class="reviews" id="reviews">${V.reviewList.map((r, i) => `
         <article class="review"${i > 3 ? ' hidden data-more' : ''}>
-          <div class="rv-top"><img src="${U(r.img, 160, 160)}" alt="${esc(r.names)}" loading="lazy" decoding="async"><div><strong>${esc(r.names)}</strong><small>Mariage le ${esc(r.date)} · ${esc(r.city)}</small></div>${stars(r.r)}</div>
+          <div class="rv-top"><img src="${U(r.img, 160, 160)}" alt="${esc(r.names)}" loading="lazy" decoding="async"><div><strong>${esc(r.names)}</strong><small>Mariage le ${esc(r.date)}${r.city ? ` · ${esc(r.city)}` : ''}</small></div>${stars(r.r)}</div>
           <p>${esc(r.text)}</p>
           ${r.reply ? `<div class="reply"><b>Réponse de ${esc(V.name)}</b>${esc(r.reply)}</div>` : ''}
         </article>`).join('')}
       </div>
-      <div class="rv-more"><button class="btn btn-ghost" id="rvMore">Afficher plus d’avis</button></div>
+      ${V.reviewList.length > 4 ? '<div class="rv-more"><button class="btn btn-ghost" id="rvMore">Afficher plus d’avis</button></div>' : ''}
     </section>
 
     <section class="panel" role="tabpanel" id="p-apropos" aria-labelledby="tab-apropos" tabindex="0" hidden>
       <div class="about">
         <div class="bio">${V.about.bio.map(p => `<p>${esc(p)}</p>`).join('')}
-          <h3 style="margin-top:28px">Style</h3>
-          <ul class="tags">${V.about.style.map(s => `<li>${esc(s)}</li>`).join('')}</ul>
+          ${V.about.style.length ? `<h3 style="margin-top:28px">Style</h3>
+          <ul class="tags">${V.about.style.map(s => `<li>${esc(s)}</li>`).join('')}</ul>` : ''}
         </div>
         <div class="facts">
-          <div class="kv">${V.about.kv.map(([b, s]) => `<div><b>${esc(b)}</b><span>${esc(s)}</span></div>`).join('')}</div>
-          <div><h3>${esc(V.about.factsTitle)}</h3><ul class="list">${V.about.facts.map(f => `<li>${esc(f)}</li>`).join('')}</ul></div>
+          ${V.about.kv.length ? `<div class="kv">${V.about.kv.map(([b, s]) => `<div><b>${esc(b)}</b><span>${esc(s)}</span></div>`).join('')}</div>` : ''}
+          ${V.about.facts.length ? `<div><h3>${esc(V.about.factsTitle)}</h3><ul class="list">${V.about.facts.map(f => `<li>${esc(f)}</li>`).join('')}</ul></div>` : ''}
           ${V.about.address ? `<div><h3>Plan d’accès</h3>
             <div class="map">
-              <svg viewBox="0 0 400 220" role="img" aria-label="Plan schématique : la salle au bord du fleuve Congo, près du boulevard du 30 Juin">
+              ${V.live ? '' : `<svg viewBox="0 0 400 220" role="img" aria-label="Plan schématique : la salle au bord du fleuve Congo, près du boulevard du 30 Juin">
                 <rect width="400" height="220" fill="#121215"/>
                 <path d="M0 40 C 90 70, 160 20, 250 46 S 380 30, 400 50 L400 0 L0 0Z" fill="#1b2a33"/>
                 <text x="18" y="24" fill="#5f7d8c" font-size="11" font-family="Manrope" letter-spacing="2">FLEUVE CONGO</text>
@@ -940,11 +1006,11 @@ main.innerHTML = `
                 <path d="M120 60 L160 220 M270 50 L250 220 M0 95 L400 85" stroke="#232328" stroke-width="5"/>
                 <circle cx="215" cy="78" r="26" fill="rgba(196,151,90,.12)"/><circle cx="215" cy="78" r="7" fill="#C4975A"/>
                 <text x="232" y="74" fill="#F1D9A6" font-size="12" font-family="Bodoni Moda" font-style="italic">Le Fleuve d’Or</text>
-              </svg>
-              <div class="map-foot"><span>${esc(V.about.address)}<br><small style="color:var(--muted)">${esc(V.about.access)}</small></span><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Gombe, Kinshasa')}" target="_blank" rel="noopener">Itinéraire ↗</a></div>
+              </svg>`}
+              <div class="map-foot"><span>${esc(V.about.address)}<br><small style="color:var(--muted)">${esc(V.about.access)}</small></span><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(V.about.mapQuery || 'Gombe, Kinshasa')}" target="_blank" rel="noopener">Itinéraire ↗</a></div>
             </div></div>` : ''}
           <div><h3>Zone d’intervention</h3><p style="margin:0;color:rgba(245,240,232,.85)">${esc(V.zone)}</p></div>
-          <div><h3>Langues parlées</h3><ul class="tags">${V.about.languages.map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>
+          ${V.about.languages.length ? `<div><h3>Langues parlées</h3><ul class="tags">${V.about.languages.map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>` : ''}
         </div>
       </div>
     </section>
@@ -963,13 +1029,13 @@ main.innerHTML = `
   <aside class="aside" aria-label="Demander un devis">
     <div class="contact">
       <span class="from">à partir de</span>
-      <div class="amount">${fmt(minPrice)}<span>USD</span></div>
-      <div class="rate">${ICON.star}<b>${V.rating.toFixed(1).replace('.', ',')}</b><span style="color:var(--muted)">· ${fmt(V.reviews)} avis</span></div>
+      <div class="amount">${minPrice}</div>
+      <div class="rate">${ICON.star}${V.reviews ? `<b>${V.rating.toFixed(1).replace('.', ',')}</b><span style="color:var(--muted)">· ${fmt(V.reviews)} avis</span>` : '<b>Nouveau</b>'}</div>
       <label class="cfield"><span>Date du mariage</span><input type="date" id="cDate"></label>
       <label class="cfield"><span>Nombre d’invités</span><input type="number" id="cGuests" min="10" max="2000" placeholder="250"></label>
       <button class="btn btn-gold" data-quote>Demander un devis</button>
-      <a class="btn btn-ghost" href="https://wa.me/${digits(V.whatsapp)}" target="_blank" rel="noopener">${ICON.wa} WhatsApp</a>
-      <div class="resp">${ICON.clock}<div>Répond en ${esc(V.response)}<small>Taux de réponse ${esc(V.responseRate)} · gratuit et sans engagement</small></div></div>
+      ${waHref ? `<a class="btn btn-ghost" href="${waHref}" target="_blank" rel="noopener">${ICON.wa} WhatsApp</a>` : ''}
+      <div class="resp">${ICON.clock}<div>${V.response ? `Répond en ${esc(V.response)}` : 'Devis gratuit'}<small>${V.responseRate ? `Taux de réponse ${esc(V.responseRate)} · ` : ''}gratuit et sans engagement</small></div></div>
     </div>
   </aside>
 </div>
@@ -990,8 +1056,8 @@ main.innerHTML = `
 </section>
 
 <div class="mbar" id="mbar">
-  <div class="price"><small>à partir de</small><b>${fmt(minPrice)} USD</b></div>
-  <a class="act wa" href="https://wa.me/${digits(V.whatsapp)}" target="_blank" rel="noopener" aria-label="WhatsApp">${ICON.wa}</a>
+  <div class="price"><small>${cheapest ? 'à partir de' : 'tarifs'}</small><b>${minPriceTxt}</b></div>
+  ${waHref ? `<a class="act wa" href="${waHref}" target="_blank" rel="noopener" aria-label="WhatsApp">${ICON.wa}</a>` : ''}
   <button class="btn btn-gold" data-quote>Devis</button>
 </div>`;
 document.body.classList.add('has-bar');
@@ -999,17 +1065,17 @@ document.body.classList.add('has-bar');
 /* =========================================================
    GALERIE + FILTRES
    ========================================================= */
-const weddingsList = [...new Set(V.gallery.map(g => g.w))];
-const filters = [['all','Tout'],['photo','Photos'],['video','Vidéos'],null,...weddingsList.map(w => ['w:' + w, w])];
+const weddingsList = [...new Set(V.gallery.map(g => g.w).filter(Boolean))];
+const filters = [['all','Tout'],['photo','Photos'],['video','Vidéos'],...(weddingsList.length ? [null, ...weddingsList.map(w => ['w:' + w, w])] : [])];
 $('#gFilters').innerHTML = filters.map(f => f ? `<button type="button" class="chip" data-f="${esc(f[0])}" aria-pressed="${f[0] === 'all'}">${esc(f[1])}</button>` : '<span class="sep" aria-hidden="true"></span>').join('');
 let gList = V.gallery.map((g, i) => ({...g, i}));
 function renderGallery(f){
   gList = V.gallery.map((g, i) => ({...g, i})).filter(g => f === 'all' || (f === 'photo' && !g.video) || (f === 'video' && g.video) || f === 'w:' + g.w);
   $('#masonry').innerHTML = gList.length ? gList.map((g, k) => `
-    <button class="g-item ph" data-k="${k}" aria-label="Ouvrir ${g.video ? 'la vidéo' : 'la photo'} ${k + 1} — ${esc(g.w)}" data-cursor="${g.video ? 'Lire' : 'Voir'}">
+    <button class="g-item ph" data-k="${k}" aria-label="Ouvrir ${g.video ? 'la vidéo' : 'la photo'} ${k + 1}${g.w ? ` — ${esc(g.w)}` : ''}" data-cursor="${g.video ? 'Lire' : 'Voir'}">
       <img src="${U(g.img, 700, Math.round(g.h * .7))}" srcset="${SRCSET(g.img, 700, Math.round(g.h * .7))}" sizes="(max-width: 700px) 48vw, (max-width: 1100px) 32vw, 24vw" alt="" width="700" height="${Math.round(g.h * .7)}" loading="lazy" decoding="async">
       ${g.video ? `<span class="g-play">${ICON.play}${esc(g.video)}</span>` : ''}
-      <span class="g-cap">${esc(g.w)}</span>
+      ${g.w ? `<span class="g-cap">${esc(g.w)}</span>` : ''}
     </button>`).join('') : '<p class="g-empty">Aucune réalisation pour ce filtre.</p>';
   if (hasGSAP) gsap.fromTo('#masonry .g-item', {y:40, opacity:0}, {y:0, opacity:1, duration:.9, ease:'power3.out', stagger:.06, clearProps:'transform,opacity'});
   bindCursor($('#masonry'));
@@ -1031,20 +1097,30 @@ function lbShow(k, dir){
   const g = gList[lbK];
   const swap = () => {
     lbImg.src = U(g.img, 1600);
-    lbImg.alt = `${g.video ? 'Vidéo' : 'Photo'} — ${g.w}, par ${V.name}`;
+    lbImg.alt = g.alt || `${g.video ? 'Vidéo' : 'Photo'}${g.w ? ` — ${g.w}` : ''}, par ${V.name}`;
     lbImg.classList.remove('out');
+    lbPlayer(g);
   };
   if (dir && !RM){ lbImg.classList.add('out'); setTimeout(swap, 220); } else swap();
-  $('#lbVideo').hidden = !g.video;
+  $('#lbVideo').hidden = !g.video || !!g.src;
   $('#lbCount').textContent = `${String(lbK + 1).padStart(2, '0')} / ${String(gList.length).padStart(2, '0')}`;
-  $('#lbCap').innerHTML = `<strong>${esc(g.w)}</strong> · ${g.video ? esc(g.video) + ' (aperçu)' : 'Photo'}`;
+  $('#lbCap').innerHTML = `${g.w ? `<strong>${esc(g.w)}</strong> · ` : ''}${g.video ? esc(g.video) + (g.src ? '' : ' (aperçu)') : 'Photo'}`;
+}
+// Vidéos des vitrines réelles : lecteur à la place de l'image (MP4 du stockage public)
+let lbVid = null;
+function lbPlayer(g){
+  if (lbVid){ lbVid.pause(); lbVid.hidden = true; lbVid.removeAttribute('src'); lbVid.load(); }
+  lbImg.hidden = !!g.src;
+  if (!g.src) return;
+  if (!lbVid){ lbVid = Object.assign(document.createElement('video'), {controls:true, playsInline:true, preload:'metadata', className:lbImg.className}); lbImg.after(lbVid); }
+  lbVid.hidden = false; lbVid.poster = U(g.img, 1600); lbVid.src = window.NDOA.file(g.src);
 }
 function lbOpen(k, opener){
   lbOpener = opener; lbShow(k);
   lb.classList.add('is-open'); lb.setAttribute('aria-hidden', 'false'); lock(true);
   $('#lbClose').focus();
 }
-function lbClose(){ lb.classList.remove('is-open'); lb.setAttribute('aria-hidden', 'true'); lock(false); lbOpener && lbOpener.focus(); }
+function lbClose(){ lbVid && lbVid.pause(); lb.classList.remove('is-open'); lb.setAttribute('aria-hidden', 'true'); lock(false); lbOpener && lbOpener.focus(); }
 $('#masonry').addEventListener('click', e => { const it = e.target.closest('.g-item'); if (it) lbOpen(+it.dataset.k, it); });
 $('#lbClose').addEventListener('click', lbClose);
 $('#lbPrev').addEventListener('click', () => lbShow(lbK - 1, -1));
@@ -1061,7 +1137,7 @@ const sv = $('#sv'), svImg = $('#svImg'), svBars = $('#svBars');
 const S = {h:0, i:0, t:null, opener:null};
 function svRender(){
   const h = V.highlights[S.h];
-  $('#svAvatar').src = U(V.avatar, 120); $('#svAvatar').alt = '';
+  $('#svAvatar').src = U(V.avatar, 120, 120); $('#svAvatar').alt = '';
   $('#svName').textContent = V.name; $('#svCat').textContent = h.t;
   $('#svCaption').textContent = h.cap;
   svBars.innerHTML = h.imgs.map(() => '<span><i></i></span>').join('');
@@ -1122,7 +1198,7 @@ document.querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click'
 window.addEventListener('resize', () => moveInd(tabs.find(t => t.getAttribute('aria-selected') === 'true')));
 document.fonts && document.fonts.ready.then(() => moveInd(tabs[0]));
 moveInd(tabs[0]);
-$('#rvMore').addEventListener('click', e => { document.querySelectorAll('[data-more]').forEach(r => r.hidden = false); e.currentTarget.remove(); });
+$('#rvMore')?.addEventListener('click', e => { document.querySelectorAll('[data-more]').forEach(r => r.hidden = false); e.currentTarget.remove(); });
 
 /* =========================================================
    CALENDRIER
@@ -1136,6 +1212,7 @@ const hash = s => { // FNV-1a + finaliseur murmur3 : pseudo-aléatoire stable pa
 };
 function dayState(d){
   if (d < today) return 'past';
+  if (V.live) return {booked:'booked', blocked:'booked', option:'option'}[V.availability.get(iso(d))] || 'free';
   const r = hash(V.slug + d.toISOString().slice(0, 10)), wd = d.getDay();
   const pBooked = wd === 6 ? .72 : wd === 5 ? .35 : wd === 0 ? .25 : .08;
   if (r < pBooked) return 'booked';
@@ -1192,10 +1269,10 @@ $('#btnShare').addEventListener('click', async () => {
    ========================================================= */
 const qm = $('#qm'), form = $('#qForm'), stepsEls = [...document.querySelectorAll('.qstep')], stepLis = [...document.querySelectorAll('#qmSteps li')];
 let qStep = 0, qOpener = null;
-$('#qmAvatar').src = U(V.avatar, 120); $('#qmTitle').textContent = V.name;
-$('#qPlans').innerHTML = V.packages.map((p, i) => `<label><input type="radio" name="plan" value="${i}"${p.featured ? ' checked' : ''}><span class="ct">${esc(p.name)}<small>${esc(p.desc)}</small></span><span class="cp">dès ${fmt(p.price)} USD</span></label>`).join('')
+$('#qmAvatar').src = U(V.avatar, 120, 120); $('#qmTitle').textContent = V.name;
+$('#qPlans').innerHTML = V.packages.map((p, i) => `<label><input type="radio" name="plan" value="${i}"${p.featured ? ' checked' : ''}><span class="ct">${esc(p.name)}<small>${esc(p.desc)}</small></span><span class="cp">dès ${fmt(p.price)} ${p.cur || 'USD'}</span></label>`).join('')
   + '<label><input type="radio" name="plan" value="-1"><span class="ct">Je ne sais pas encore<small>Le prestataire vous conseillera</small></span></label>';
-$('#qOpts').innerHTML = V.options.map(([n, pr], i) => `<label><input type="checkbox" name="opt" value="${i}"><span>${esc(n)} · +${fmt(pr)} USD</span></label>`).join('');
+$('#qOpts').innerHTML = V.options.map(([n, pr, cur], i) => `<label><input type="checkbox" name="opt" value="${i}"><span>${esc(n)} · +${fmt(pr)} ${cur || 'USD'}</span></label>`).join('');
 function goStep(n){
   qStep = n;
   stepsEls.forEach((s, i) => s.classList.toggle('on', i === n));
@@ -1257,13 +1334,14 @@ form.addEventListener('submit', async e => {
   const res = await window.NDOA.submitInquiry({
     p_vendor_slug: V.slug, p_couple_names: String(fd.get('noms')).trim(), p_email: String(fd.get('email') || '').trim() || null,
     p_phone: String(fd.get('tel') || '').trim() || null, p_contact_pref: pref, p_wedding_date: fd.get('date') || null,
-    p_city: fd.get('ville') || null, p_guests: +fd.get('invites') || null, p_package_id: null, p_option_ids: null, p_message: detail,
+    p_city: fd.get('ville') || null, p_guests: +fd.get('invites') || null, p_package_id: plan?.id || null,
+    p_option_ids: V.live && fd.getAll('opt').length ? fd.getAll('opt').map(i => V.options[+i][3]) : null, p_message: detail,
   });
   sending = false; nextBtn.disabled = false; nextBtn.removeAttribute('aria-busy');
   if (!res.ok) { errBox.textContent = res.error; return; }
   const date = new Date(fd.get('date') + 'T12:00').toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'});
-  $('#qDoneText').textContent = `${V.name} a bien reçu votre demande et répond en général en ${V.response}. Vous serez recontactés par ${fd.get('pref')}.`;
-  $('#qRecap').innerHTML = [['Date', date], ['Ville', fd.get('ville')], ['Formule', plan ? `${plan.name} · dès ${fmt(plan.price)} USD` : 'À définir'], ['Options', opts.length ? opts.join(', ') : 'Aucune'], ['Invités', fd.get('invites') || '—']]
+  $('#qDoneText').textContent = `${V.name} a bien reçu votre demande${V.response ? ` et répond en général en ${V.response}` : ''}. Vous serez recontactés par ${fd.get('pref')}.`;
+  $('#qRecap').innerHTML = [['Date', date], ['Ville', fd.get('ville')], ['Formule', plan ? `${plan.name} · dès ${fmt(plan.price)} ${plan.cur || 'USD'}` : 'À définir'], ['Options', opts.length ? opts.join(', ') : 'Aucune'], ['Invités', fd.get('invites') || '—']]
     .map(([k, v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join('');
   goStep(3);
 });
@@ -1272,7 +1350,11 @@ form.addEventListener('input', e => { const q = e.target.closest('.qf'); if (q) 
 /* =========================================================
    PRESTATAIRES SIMILAIRES + ÉQUIPE
    ========================================================= */
-const others = BASE.filter(v => v.slug !== V.slug);
+const POOL = V.live ? (await window.NDOA.vendors()) || [] : BASE;
+const catName = v => v.catName || CAT[v.cat]?.[0] || 'Prestataire';
+const rate = v => v.reviews ? v.rating.toFixed(1).replace('.', ',') : 'Nouveau';
+const priceLabel = v => v.price == null ? 'Sur devis' : `${fmt(v.price)} USD`;
+const others = POOL.filter(v => v.slug !== V.slug);
 let similar = others.filter(v => v.cat === V.cat || (V.cat === 'photographe' && v.cat === 'videaste') || (V.cat === 'videaste' && v.cat === 'photographe'));
 if (similar.length < 4) similar = similar.concat(others.filter(v => !similar.includes(v) && v.city === V.city)).slice(0, 6);
 if (similar.length < 4) similar = similar.concat(others.filter(v => !similar.includes(v))).slice(0, 6);
@@ -1283,19 +1365,20 @@ const card = v => `
       <button type="button" class="like glass" aria-pressed="false" aria-label="J'aime ${esc(v.name)}"><span class="burst" aria-hidden="true">${Array.from({length:8}, (_, k) => `<i style="--r:${k * 45}deg"></i>`).join('')}</span>${ICON.heart}<span class="like-n">${fmt(v.likes)}</span></button>
     </div>
     <div class="card-body">
-      <div class="card-top"><img class="card-avatar" src="${U(v.avatar, 160)}" alt="" loading="lazy" width="64" height="64"><button type="button" class="follow" aria-pressed="false" aria-label="Suivre ${esc(v.name)}">+ Suivre</button></div>
-      <h3><a href="${vendorUrl(v)}" data-cursor="Voir">${esc(v.name)}</a>${ICON.verified}</h3>
-      <p class="card-sub">${CAT[v.cat][0]} · ${esc(v.city)}</p>
-      <div class="card-foot"><span class="rating">${ICON.star}${v.rating.toFixed(1).replace('.', ',')} <small>(${v.reviews})</small></span><span class="price">à partir de<b>${fmt(v.price)} USD</b></span></div>
+      <div class="card-top"><img class="card-avatar" src="${U(v.avatar, 160, 160)}" alt="" loading="lazy" width="64" height="64"><button type="button" class="follow" aria-pressed="false" aria-label="Suivre ${esc(v.name)}">+ Suivre</button></div>
+      <h3><a href="${vendorUrl(v)}" data-cursor="Voir">${esc(v.name)}</a>${v.verified === false ? '' : ICON.verified}</h3>
+      <p class="card-sub">${esc(catName(v))} · ${esc(v.city)}</p>
+      <div class="card-foot"><span class="rating">${ICON.star}${rate(v)}${v.reviews ? ` <small>(${fmt(v.reviews)})</small>` : ''}</span><span class="price">${v.price == null ? '' : 'à partir de'}<b>${priceLabel(v)}</b></span></div>
     </div>
   </article>`;
 $('#simTrack').innerHTML = similar.map(card).join('');
+$('#simTrack').closest('.more').hidden = !similar.length;
 const simStep = d => $('#simTrack').scrollBy({left: d * ($('#simTrack .card').offsetWidth + 16), behavior: RM ? 'auto' : 'smooth'});
 $('#simPrev').addEventListener('click', () => simStep(-1));
 $('#simNext').addEventListener('click', () => simStep(1));
 $('#simTrack').addEventListener('click', e => {
   const like = e.target.closest('.like'), fol = e.target.closest('.follow'); if (!like && !fol) return;
-  const v = bySlug[e.target.closest('.card').dataset.slug];
+  const v = POOL.find(x => x.slug === e.target.closest('.card').dataset.slug);
   if (like){ const on = like.getAttribute('aria-pressed') !== 'true'; like.setAttribute('aria-pressed', on); like.querySelector('.like-n').textContent = fmt(v.likes + (on ? 1 : 0)); like.classList.remove('pop'); void like.offsetWidth; on && like.classList.add('pop'); }
   else { const on = fol.getAttribute('aria-pressed') !== 'true'; fol.setAttribute('aria-pressed', on); fol.textContent = on ? 'Suivi ✓' : '+ Suivre'; }
 });
@@ -1303,8 +1386,8 @@ $('#simTrack').addEventListener('mouseover', e => { const c = e.target.closest('
 $('#simTrack').addEventListener('mouseout', e => { const c = e.target.closest('.card'); if (!c || c.contains(e.relatedTarget)) return; clearInterval(c._t); c._t = null; c.querySelectorAll('.card-cover img').forEach((im, k) => im.classList.toggle('on', !k)); c.querySelectorAll('.card-dots i').forEach((d, k) => d.classList.toggle('on', !k)); });
 
 const teamCats = (V.cat === 'salle' ? ['traiteur','decorateur','photographe','dj','fleuriste','voiture'] : ['salle','traiteur','decorateur','dj','maquilleur','planner']).filter(c => c !== V.cat);
-$('#team').innerHTML = teamCats.map(c => BASE.find(v => v.cat === c && v.slug !== V.slug)).filter(Boolean).map(v => `
-  <a class="tm8 ph" href="${vendorUrl(v)}" data-cursor="Voir"><img src="${U(v.gallery[0], 500)}" srcset="${SRCSET(v.gallery[0], 500)}" sizes="(max-width: 700px) 45vw, 20vw" alt="" loading="lazy" decoding="async"><span class="k">${CAT[v.cat][1]}</span><strong>${esc(v.name)}</strong><small>${v.city} · dès ${fmt(v.price)} USD</small></a>`).join('');
+$('#team').innerHTML = teamCats.map(c => POOL.find(v => v.cat === c && v.slug !== V.slug)).filter(Boolean).map(v => `
+  <a class="tm8 ph" href="${vendorUrl(v)}" data-cursor="Voir"><img src="${U(v.gallery[0], 500)}" srcset="${SRCSET(v.gallery[0], 500)}" sizes="(max-width: 700px) 45vw, 20vw" alt="" loading="lazy" decoding="async"><span class="k">${esc(CAT[v.cat]?.[1] || catName(v))}</span><strong>${esc(v.name)}</strong><small>${esc(v.city)} · ${v.price == null ? 'sur devis' : `dès ${fmt(v.price)} USD`}</small></a>`).join('');
 
 /* =========================================================
    NAV, MENU, NEWSLETTER, VERROU DE SCROLL, CLAVIER

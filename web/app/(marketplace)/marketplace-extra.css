@@ -1,0 +1,75 @@
+/* Compléments propres à la version Next.js de la marketplace (la base vient de marketplace.css, générée) */
+.mk { min-height: 100dvh; }
+.mk .contents { display: contents; }
+.mk .hero-credit { align-items: center; }
+.mk .hero-credit-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1.5px var(--gold); }
+.mk .field select { width: 100%; background: transparent; border: 0; outline: 0; font-size: .95rem; padding: 0; appearance: none; }
+.mk .field select option { color: #17171a; }
+.mk .tm-text .tm { grid-template-columns: 1fr; flex-basis: min(86%, 560px); }
+.mk .empty a { color: var(--gold-hi); font-weight: 700; }
+
+/* ---------- Annuaire ---------- */
+.mk .dir-head { padding-top: calc(var(--nav-h) + clamp(28px, 5vw, 64px)); }
+.mk .dir-head h1 { font-size: clamp(2.4rem, 6vw, 4.6rem); margin: 0; }
+.mk .dir-head p { color: var(--muted); max-width: 60ch; }
+.mk .dir-filters { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 28px 0 18px; padding: 14px; border: 1px solid var(--line); border-radius: 22px; background: rgba(23, 23, 26, .6); }
+.mk .dir-filters .q { grid-column: 1 / -1; }
+.mk .dir-filters label { display: grid; gap: 4px; font-size: .6875rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.mk .dir-filters input, .mk .dir-filters select { height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--coal-2); padding: 0 12px; font-size: .95rem; letter-spacing: 0; text-transform: none; font-weight: 500; color: var(--text); }
+.mk .dir-filters select option { color: var(--text); background: var(--coal-2); }
+.mk .dir-filters .btn { align-self: end; height: 44px; }
+@media (min-width: 900px) {
+  .mk .dir-filters { grid-template-columns: 1.6fr repeat(6, minmax(0, 1fr)) auto; align-items: end; }
+  .mk .dir-filters .q { grid-column: auto; }
+}
+.mk .dir-meta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 18px; color: var(--muted); font-size: .9rem; }
+.mk .dir-meta a { color: var(--gold-hi); font-weight: 700; }
+.mk .pager { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 36px; }
+.mk .pager a, .mk .pager span { min-width: 44px; height: 44px; display: inline-grid; place-items: center; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); font-weight: 700; font-size: .9rem; }
+.mk .pager [aria-current="page"] { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+.mk .join { margin-top: 56px; padding: clamp(24px, 4vw, 40px); border-radius: 24px; border: 1px solid rgba(196, 151, 90, .4); background: linear-gradient(135deg, rgba(196, 151, 90, .12), rgba(23, 23, 26, .6)); display: grid; gap: 14px; justify-items: start; }
+.mk .join h2 { margin: 0; font-family: var(--serif); font-weight: 500; font-size: clamp(1.6rem, 3.4vw, 2.4rem); line-height: 1.05; }
+.mk .join p { margin: 0; color: rgba(245, 240, 232, .8); max-width: 56ch; }
+
+/* ---------- Inspiration ---------- */
+.mk .insp { columns: 2 220px; column-gap: 12px; margin-top: 32px; }
+.mk .insp a { display: block; position: relative; margin-bottom: 12px; border-radius: 16px; overflow: hidden; break-inside: avoid; background: var(--coal); }
+.mk .insp img { width: 100%; height: auto; transition: transform .9s var(--ease); }
+.mk .insp a:hover img, .mk .insp a:focus-visible img { transform: scale(1.04); }
+.mk .insp figcaption { position: absolute; inset: auto 0 0 0; padding: 30px 12px 10px; font-size: .8rem; background: linear-gradient(transparent, rgba(0, 0, 0, .75)); }
+.mk .insp figcaption b { display: block; font-family: var(--serif); font-size: 1rem; font-weight: 500; }
+@media (min-width: 900px) { .mk .insp { columns: 4 220px; } }
+
+/* ---------- Pages simples (légal, contact, compte) ---------- */
+.mk .page { padding: calc(var(--nav-h) + clamp(28px, 5vw, 64px)) 0 var(--section-y); }
+.mk .page h1 { font-size: clamp(2.4rem, 6vw, 4.4rem); margin: 0 0 12px; }
+.mk .prose { max-width: 70ch; display: grid; gap: 14px; color: rgba(245, 240, 232, .88); line-height: 1.7; }
+.mk .prose h2 { margin: 24px 0 0; font-family: var(--serif); font-weight: 500; font-size: 1.6rem; color: var(--text); }
+.mk .prose ul { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; }
+.mk .prose a { color: var(--gold-hi); text-decoration: underline; text-underline-offset: 3px; }
+.mk .todo { background: rgba(196, 151, 90, .18); color: var(--gold-hi); border-radius: 4px; padding: 0 4px; }
+.mk .notice { border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; background: rgba(23, 23, 26, .6); }
+
+/* ---------- Formulaires (devis, contact, compte) ---------- */
+.mk .form { display: grid; gap: 14px; }
+.mk .form .row { display: grid; gap: 14px; }
+@media (min-width: 600px) { .mk .form .row { grid-template-columns: 1fr 1fr; } }
+.mk .form label { display: grid; gap: 6px; font-size: .82rem; font-weight: 700; color: rgba(245, 240, 232, .85); }
+.mk .form label small { font-weight: 500; color: var(--muted); }
+.mk .form input, .mk .form select, .mk .form textarea { width: 100%; min-height: 48px; border-radius: 14px; border: 1px solid var(--line); background: var(--coal-2); padding: 12px 14px; font-size: 1rem; color: var(--text); }
+.mk .form textarea { min-height: 110px; resize: vertical; }
+.mk .form input:focus, .mk .form select:focus, .mk .form textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+.mk .form [aria-invalid="true"] { border-color: #f0b9c6; }
+.mk .form .err { color: #f0b9c6; font-size: .85rem; font-weight: 600; margin: 0; }
+.mk .form .ok { color: #8fd1a6; font-weight: 700; }
+
+/* ---------- Profil : contact au clic ---------- */
+.mk .reveal { display: inline-flex; align-items: center; gap: 8px; }
+.mk .act[aria-busy="true"] { opacity: .6; }
+
+/* ---------- Profil ---------- */
+.mk .rv-ini { width: 60px; height: 60px; border-radius: 14px; display: grid; place-items: center; flex: 0 0 auto; background: rgba(196, 151, 90, .18); color: var(--gold-hi); font-family: var(--serif); font-size: 1.6rem; }
+.mk .cover-media img { position: absolute; }
+.mk .tm8 img { position: absolute; }
+@media (max-width: 1023px) { .mk:has(.mbar) { padding-bottom: 84px; } }
+.mk .dir-filters select { appearance: none; padding-right: 30px; background: var(--coal-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23C4975A' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center; text-overflow: ellipsis; }

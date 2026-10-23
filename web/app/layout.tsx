@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import { Bodoni_Moda, Manrope } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
-import { APP_URL } from "@/lib/config";
+import { SITE_URL } from "@/lib/config";
 
 const bodoni = Bodoni_Moda({ variable: "--font-bodoni", subsets: ["latin"], style: ["normal", "italic"], display: "swap" });
 const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(APP_URL),
+  metadataBase: new URL(SITE_URL),
   title: { default: "Espace prestataire — NDOA Wedding", template: "%s — NDOA Pro" },
   description: "Créez votre vitrine NDOA Wedding, gérez vos photos, vos tarifs et vos demandes de devis.",
   openGraph: {

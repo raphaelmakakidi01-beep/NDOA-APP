@@ -17,7 +17,9 @@ import { ProfilePreview } from "@/components/onboarding/profile-preview";
 import { ToggleChip } from "@/components/onboarding/step-ui";
 import { useEspace } from "@/lib/espace/store";
 import type { MediaItem } from "@/lib/espace/types";
-import { CITIES, DETAIL_FIELDS, LANGUAGES, STYLE_SUGGESTIONS, ZONE_SUGGESTIONS, categoryName } from "@/lib/onboarding/catalog";
+import { DETAIL_FIELDS, LANGUAGES, STYLE_SUGGESTIONS, ZONE_SUGGESTIONS } from "@/lib/onboarding/catalog";
+import { useCatalog, withCurrent } from "@/lib/onboarding/use-catalog";
+import { PUBLIC_HOST } from "@/lib/config";
 import { stepSchemas } from "@/lib/onboarding/rules";
 import { storeImage } from "@/lib/onboarding/repo";
 import { checkPhoto, checkSignature, compressPhoto, PHOTO_ACCEPT } from "@/lib/media";
@@ -61,6 +63,7 @@ export function ChipsEditor({ id, values, onChange, suggestions, placeholder }: 
 
 export function Vitrine() {
   const { vendor, data, saveVitrine } = useEspace();
+  const { cities, categoryName } = useCatalog();
   const params = useSearchParams();
   const [form, setForm] = useState<Draft>(vendor);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -168,7 +171,7 @@ export function Vitrine() {
                 <Field id="v-tagline" label="Accroche" optional error={errors.tagline} counter={{ value: form.tagline.length, max: 120 }}>
                   {({ id, describedBy, invalid }) => <Input id={id} value={form.tagline} maxLength={140} onChange={(e) => set({ tagline: e.target.value })} aria-describedby={describedBy} aria-invalid={invalid || undefined} />}
                 </Field>
-                <p className="text-[13px] text-muted">Adresse de votre page : <b className="text-text">ndoa.cd/prestataire/{form.slug}</b> · modifiable depuis les paramètres.</p>
+                <p className="text-[13px] text-muted">Adresse de votre page : <b className="text-text">{PUBLIC_HOST}/prestataires/{form.slug}</b> · modifiable depuis les paramètres.</p>
               </div>
             </div>
           </Card>
@@ -233,7 +236,7 @@ export function Vitrine() {
             <CardHeader id="h-zones" title="Zones et langues" />
             <div className="grid grid-cols-1 gap-6">
               <Field id="v-city" label="Ville principale">
-                {({ id }) => <Select id={id} value={form.city} onChange={(e) => set({ city: e.target.value })}>{CITIES.map((c) => <option key={c}>{c}</option>)}</Select>}
+                {({ id }) => <Select id={id} value={form.city} onChange={(e) => set({ city: e.target.value })}>{withCurrent(cities, form.city).map((c) => <option key={c}>{c}</option>)}</Select>}
               </Field>
               <div className="grid gap-2">
                 <label htmlFor="v-zones" className="text-sm font-semibold">Zones d’intervention</label>

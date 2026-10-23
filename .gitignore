@@ -1,6 +1,7 @@
 # Dépendances et builds
 node_modules/
 .next/
+dist/
 .vercel
 
 # Secrets : tous les fichiers .env sont exclus, sauf les modèles sans valeurs

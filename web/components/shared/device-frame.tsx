@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { PUBLIC_HOST } from "@/lib/config";
 
 /** Cadre d’aperçu : le rendu desktop (1200 px) est réduit pour tenir dans la colonne */
 export function DeviceFrame({ device, children, mobileHeight }: { device: "desktop" | "mobile"; children: React.ReactNode; mobileHeight?: string }) {
@@ -27,7 +28,7 @@ export function DeviceFrame({ device, children, mobileHeight }: { device: "deskt
     <div ref={box} className="overflow-hidden rounded-2xl border border-line-strong bg-black shadow-2xl">
       <div className="flex items-center gap-1.5 border-b border-white/10 bg-[#17171A] px-4 py-2.5" aria-hidden>
         <span className="size-2.5 rounded-full bg-white/20" /><span className="size-2.5 rounded-full bg-white/20" /><span className="size-2.5 rounded-full bg-white/20" />
-        <span className="ml-3 rounded-full bg-black/40 px-3 py-1 text-[11px] text-white/60">ndoa.cd/prestataire/…</span>
+        <span className="ml-3 rounded-full bg-black/40 px-3 py-1 text-[11px] text-white/60">{PUBLIC_HOST}/prestataires/…</span>
       </div>
       <div className="h-[560px] overflow-y-auto overflow-x-hidden" tabIndex={0} aria-label="Aperçu ordinateur (défilable)">
         {/* le contenu transformé n’occupe pas d’espace : on réserve sa hauteur réduite */}
