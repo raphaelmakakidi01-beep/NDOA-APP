@@ -63,6 +63,7 @@ export function RouteProgress() {
   return <div ref={bar} className="route-bar" aria-hidden="true" />;
 }
 
+const CATEGORY = "#categories .cat";
 const REVEAL = [".section-head", ".home-soon .container", ".budget-teaser .container", "#categories .cat", "#recommandations .feature", "#recommandations .pick", "#feed .card", ".step", ".counters", ".cta-actions"].map((s) => `.mk main ${s}`).join(",");
 
 /**
@@ -74,23 +75,30 @@ export function ScrollReveal() {
   const pathname = usePathname();
   useEffect(() => {
     if (pathname !== "/" || stilled() || !("IntersectionObserver" in window)) return;
-    const anims = new Map<Element, Animation>();
+    const anims = new Map<Element, Animation[]>();
     const io = new IntersectionObserver((entries) => {
       entries.filter((en) => en.isIntersecting).forEach((en, i) => {
         io.unobserve(en.target);
-        const anim = anims.get(en.target);
-        anim?.effect?.updateTiming({ delay: Math.min(i, 5) * 60 });
-        anim?.play();
+        const delay = Math.min(i, 5) * (en.target.matches(CATEGORY) ? 110 : 60);
+        anims.get(en.target)?.forEach((a) => { a.effect?.updateTiming({ delay }); a.play(); });
       });
-    }, { rootMargin: "0px 0px -8% 0px" });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
+    const timing = { easing: "cubic-bezier(.22,1,.36,1)", fill: "backwards" } as const;
     document.querySelectorAll(REVEAL).forEach((el) => {
       if (el.getBoundingClientRect().top <= innerHeight * 0.9) return;
-      const anim = el.animate([{ opacity: 0, transform: "translateY(18px)" }, { opacity: 1, transform: "none" }], { duration: 700, easing: "cubic-bezier(.22,1,.36,1)", fill: "backwards" });
-      anim.pause();
-      anims.set(el, anim);
+      // Les catégories entrent plus franchement : la carte monte pendant que sa photo se recadre
+      const img = el.matches(CATEGORY) ? el.querySelector("img") : null;
+      const list = img
+        ? [
+            el.animate([{ opacity: 0, transform: "translateY(56px) scale(.96)" }, { opacity: 1, transform: "none" }], { ...timing, duration: 1000 }),
+            img.animate([{ transform: "scale(1.18)" }, { transform: "none" }], { ...timing, duration: 1400 }),
+          ]
+        : [el.animate([{ opacity: 0, transform: "translateY(18px)" }, { opacity: 1, transform: "none" }], { ...timing, duration: 700 })];
+      list.forEach((a) => a.pause());
+      anims.set(el, list);
       io.observe(el);
     });
-    return () => { io.disconnect(); anims.forEach((a) => a.cancel()); };
+    return () => { io.disconnect(); anims.forEach((list) => list.forEach((a) => a.cancel())); };
   }, [pathname]);
   return null;
 }
