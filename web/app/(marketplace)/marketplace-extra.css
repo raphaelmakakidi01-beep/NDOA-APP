@@ -4,7 +4,7 @@
 .mk .hero-credit { align-items: center; }
 .mk .hero-credit-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1.5px var(--gold); }
 .mk .field select { width: 100%; background: transparent; border: 0; outline: 0; font-size: .95rem; padding: 0; appearance: none; }
-.mk .field select option { color: #17171a; }
+.mk .field select option { color: var(--text); background: var(--coal); }
 .mk .tm-text .tm { grid-template-columns: 1fr; flex-basis: min(86%, 560px); }
 .mk .empty a { color: var(--gold-hi); font-weight: 700; }
 
@@ -185,3 +185,21 @@
 @keyframes stepNum { from { color: transparent; } to { color: var(--wine); } }
 @keyframes stepIcon { from { opacity: .3; transform: scale(.8); } to { opacity: 1; transform: none; } }
 @keyframes stepText { from { opacity: .35; } to { opacity: 1; } }
+
+/* ---------- Recherche de l'accueil : verre dépoli clair ---------- */
+/* Une seule déclaration de backdrop-filter : avec la variante -webkit-, la compilation ne garde que celle-ci et Chrome perd le flou */
+.mk .search.glass { padding: 10px; border: 1px solid rgba(255, 255, 255, .22); background: linear-gradient(135deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05) 55%, rgba(255, 255, 255, .09)); backdrop-filter: blur(30px) saturate(165%) brightness(.68); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), inset 0 -1px 0 rgba(255, 255, 255, .05), 0 28px 70px -28px rgba(0, 0, 0, .85); }
+.mk .search .field { background: rgba(255, 255, 255, .07); border-radius: 18px; padding: 11px 16px 10px; transition: background .25s ease-out, box-shadow .25s ease-out; }
+.mk .search .field::before { display: none; }
+.mk .search .field:hover { background: rgba(255, 255, 255, .12); }
+.mk .search .field:focus-within { background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(232, 200, 150, .75); }
+.mk .search .field label { font-size: .72rem; font-weight: 600; letter-spacing: .02em; text-transform: none; color: rgba(245, 240, 232, .72); }
+.mk .search .field select, .mk .search .field input { padding-top: 3px; font-size: .98rem; font-weight: 600; color: #fff; }
+.mk .search .field select { padding-right: 22px; text-overflow: ellipsis; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23F5F0E8' stroke-opacity='.8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right center; cursor: pointer; }
+.mk .search .field input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .75; }
+.mk .search .btn { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 12px 28px -12px rgba(196, 151, 90, .8); }
+@media (min-width: 860px) {
+  .mk .search.glass { gap: 6px; padding: 8px; border-radius: 30px; }
+  .mk .search .field { padding: 11px 18px 10px; border-radius: 22px; background: transparent; }
+  .mk .search .btn { border-radius: 22px; }
+}
