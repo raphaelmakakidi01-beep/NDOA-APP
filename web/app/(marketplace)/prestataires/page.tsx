@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { directoryUrl, fmt } from "@/components/mk/format";
 import { Search } from "@/components/mk/icons";
+import { Select } from "@/components/mk/select";
 import { VendorCard } from "@/components/mk/vendor-card";
 import { BUDGETS, getHome, searchDirectory, SORTS } from "@/lib/public/data";
 import type { DirectoryQuery } from "@/lib/public/types";
@@ -43,33 +44,19 @@ async function Results({ searchParams }: { searchParams: PageProps<"/prestataire
       <form className="dir-filters" action="/prestataires" method="get" role="search" aria-label="Filtrer les prestataires">
         <label className="q">Recherche<input name="q" type="search" defaultValue={q.q} placeholder="Nom, style, quartier…" /></label>
         <label>Catégorie
-          <select name="categorie" defaultValue={q.categorie ?? ""}>
-            <option value="">Toutes</option>
-            {home.categories.map((c) => <option key={c.slug} value={c.slug}>{c.plural}</option>)}
-          </select>
+          <Select key={q.categorie} name="categorie" defaultValue={q.categorie} options={[{ value: "", label: "Toutes" }, ...home.categories.map((c) => ({ value: c.slug, label: c.plural }))]} />
         </label>
         <label>Ville
-          <select name="ville" defaultValue={q.ville ?? ""}>
-            <option value="">Toutes</option>
-            {cityList.map((c) => <option key={c}>{c}</option>)}
-          </select>
+          <Select key={q.ville} name="ville" defaultValue={q.ville} options={[{ value: "", label: "Toutes" }, ...cityList.map((c) => ({ value: c, label: c }))]} />
         </label>
         <label>Budget
-          <select name="budget" defaultValue={q.budget ?? ""}>
-            <option value="">Tous</option>
-            {BUDGETS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
-          </select>
+          <Select key={q.budget} name="budget" defaultValue={q.budget} options={[{ value: "", label: "Tous" }, ...BUDGETS]} />
         </label>
         <label>Note
-          <select name="note" defaultValue={q.note ?? ""}>
-            <option value="">Toutes</option>
-            {NOTES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
+          <Select key={q.note} name="note" defaultValue={q.note} options={[{ value: "", label: "Toutes" }, ...NOTES.map(([value, label]) => ({ value, label }))]} />
         </label>
         <label>Trier
-          <select name="tri" defaultValue={q.tri ?? "pertinence"}>
-            {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-          </select>
+          <Select key={q.tri} name="tri" defaultValue={q.tri ?? "pertinence"} options={SORTS} />
         </label>
         <label>Date libre<input name="date" type="date" defaultValue={q.date} /></label>
         <button className="btn btn-gold" type="submit"><Search />Filtrer</button>

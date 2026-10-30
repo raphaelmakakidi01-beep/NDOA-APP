@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import type { Category, Slide } from "@/lib/public/types";
 import { vendorUrl } from "./format";
 import { Search } from "./icons";
+import { Select } from "./select";
 
 const DUR = 6500;
 // mouvement réduit ou onglet masqué : pas de défilement automatique
@@ -98,17 +99,11 @@ export function Hero({ slides, categories, cities, texts }: { slides: Slide[]; c
         <form className="search glass" action="/prestataires" method="get" role="search" aria-label="Rechercher un prestataire">
           <div className="field f-what">
             <label htmlFor="s-cat">Prestataire</label>
-            <select id="s-cat" name="categorie" defaultValue="">
-              <option value="">Tous les métiers</option>
-              {categories.map((c) => <option key={c.slug} value={c.slug}>{c.plural}</option>)}
-            </select>
+            <Select id="s-cat" name="categorie" options={[{ value: "", label: "Tous les métiers" }, ...categories.map((c) => ({ value: c.slug, label: c.plural }))]} />
           </div>
           <div className="field">
             <label htmlFor="s-ville">Ville</label>
-            <select id="s-ville" name="ville" defaultValue="">
-              <option value="">Toutes</option>
-              {cities.map((c) => <option key={c}>{c}</option>)}
-            </select>
+            <Select id="s-ville" name="ville" options={[{ value: "", label: "Toutes" }, ...cities.map((c) => ({ value: c, label: c }))]} />
           </div>
           <div className="field">
             <label htmlFor="s-date">Date</label>
@@ -116,10 +111,7 @@ export function Hero({ slides, categories, cities, texts }: { slides: Slide[]; c
           </div>
           <div className="field">
             <label htmlFor="s-budget">Budget</label>
-            <select id="s-budget" name="budget" defaultValue="">
-              <option value="">Tous</option>
-              {BUDGETS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
+            <Select id="s-budget" name="budget" options={[{ value: "", label: "Tous" }, ...BUDGETS.map(([value, label]) => ({ value, label }))]} />
           </div>
           <button className="btn btn-gold" type="submit"><Search />Rechercher</button>
         </form>

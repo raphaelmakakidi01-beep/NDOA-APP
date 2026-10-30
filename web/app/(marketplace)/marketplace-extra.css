@@ -203,3 +203,23 @@
   .mk .search .field { padding: 11px 18px 10px; border-radius: 22px; background: transparent; }
   .mk .search .btn { border-radius: 22px; }
 }
+
+/* ---------- Liste déroulante du site ---------- */
+.mk .sel-btn { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-width: 0; min-height: 24px; padding: 3px 0 0; text-align: left; font-size: .98rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: #fff; cursor: pointer; }
+.mk .sel-btn:focus-visible { outline: none; }
+.mk .sel-value { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mk .sel-chevron { flex: 0 0 auto; width: 15px; height: 15px; opacity: .8; transition: transform .2s var(--ease); }
+.mk .sel-btn[aria-expanded="true"] .sel-chevron { transform: rotate(180deg); }
+.mk .sel-list { position: fixed; z-index: 400; margin: 0; padding: 6px; overflow-y: auto; overscroll-behavior: contain; list-style: none; border: 1px solid rgba(255, 255, 255, .16); border-radius: 18px; background: rgba(22, 22, 25, .9); backdrop-filter: blur(24px) saturate(150%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 28px 60px -20px rgba(0, 0, 0, .9); scrollbar-width: thin; scrollbar-color: rgba(245, 240, 232, .25) transparent; transform-origin: top; animation: selIn .16s var(--ease); }
+.mk .sel-list.up { transform-origin: bottom; }
+.mk .sel-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; padding: 8px 12px; border-radius: 12px; font-size: .94rem; font-weight: 500; color: rgba(245, 240, 232, .88); cursor: pointer; }
+.mk .sel-list li.on { background: rgba(245, 240, 232, .1); color: #fff; }
+.mk .sel-list li[aria-selected="true"] { font-weight: 700; color: var(--gold-hi); }
+.mk .sel-list li svg { flex: 0 0 auto; width: 16px; height: 16px; }
+@media (pointer: coarse) { .mk .sel-list li { min-height: 46px; } }
+@keyframes selIn { from { opacity: 0; transform: translateY(-4px) scale(.98); } }
+/* Variante des filtres de l'annuaire */
+.mk .dir-filters .sel-btn { height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--coal-2); font-size: .95rem; font-weight: 500; color: var(--text); transition: border-color .2s ease-out; }
+.mk .dir-filters .sel-btn:hover { border-color: rgba(196, 151, 90, .6); }
+.mk .dir-filters .sel-btn:focus-visible, .mk .dir-filters .sel-btn[aria-expanded="true"] { border-color: var(--gold); outline: 2px solid var(--gold); outline-offset: 1px; }
+.mk .dir-filters .sel-chevron { color: var(--gold); opacity: 1; }
