@@ -87,11 +87,12 @@ export function TrendChart({ data }: { data: DayStat[] }) {
           <p className="flex items-center gap-2"><span className="size-2 rounded-full bg-rose" aria-hidden />{a.inquiries} demande{a.inquiries > 1 ? "s" : ""}</p>
         </div>
       )}
-      <table className="sr-only">
+      {/* masqué par un div : un <table> ignore la taille de sr-only et allongerait la page */}
+      <div className="sr-only"><table>
         <caption>Vues et demandes par jour</caption>
         <thead><tr><th>Jour</th><th>Vues</th><th>Demandes</th></tr></thead>
         <tbody>{data.map((d) => <tr key={d.day}><td>{dateFr(d.day)}</td><td>{d.views}</td><td>{d.inquiries}</td></tr>)}</tbody>
-      </table>
+      </table></div>
     </div>
   );
 }

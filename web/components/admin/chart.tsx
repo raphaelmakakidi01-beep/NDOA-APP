@@ -59,11 +59,12 @@ export function DailyBars({ data, label }: { data: { day: string; value: number 
           </text>
         ))}
       </svg>
-      <table className="sr-only">
+      {/* masqué par un div : un <table> ignore la taille de sr-only et allongerait la page */}
+      <div className="sr-only"><table>
         <caption>{label} par jour</caption>
         <thead><tr><th scope="col">Jour</th><th scope="col">{label}</th></tr></thead>
         <tbody>{data.map((d) => <tr key={d.day}><td>{dateFr(d.day)}</td><td>{d.value}</td></tr>)}</tbody>
-      </table>
+      </table></div>
     </div>
   );
 }
