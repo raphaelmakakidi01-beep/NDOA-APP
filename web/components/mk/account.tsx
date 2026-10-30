@@ -56,26 +56,28 @@ export function Account({ vendors }: { vendors: Card[] }) {
         <span className="sep" aria-hidden="true" />
         <button type="button" className="chip" onClick={signOut}>Se déconnecter</button>
       </div>
-      {tab !== "demandes" ? (
-        list.length ? <div className="feed" style={{ marginTop: 24 }}>{list.map((v) => <VendorCard key={v.id} v={v} />)}</div> : (
-          <div className="empty" style={{ marginTop: 24 }}>
-            <strong>{tab === "favoris" ? "Aucun favori pour l’instant." : "Vous ne suivez encore personne."}</strong>
-            {tab === "favoris" ? "Touchez ♥ sur une carte pour garder un prestataire sous la main." : "Touchez « Suivre » sur un profil pour ne rien manquer de ses réalisations."} <Link href="/prestataires">Explorer les prestataires →</Link>
-          </div>
-        )
-      ) : !inquiries ? <p aria-busy="true" style={{ color: "var(--muted)", marginTop: 24 }}>Chargement…</p> : inquiries.length ? (
-        <ul className="reviews" style={{ marginTop: 24, listStyle: "none", padding: 0 }}>
-          {inquiries.map((q) => (
-            <li key={q.id} className="review">
-              <div className="rv-top"><div><strong>{q.vendor ? <Link href={vendorUrl(q.vendor.slug)}>{q.vendor.name}</Link> : "Prestataire indisponible"}</strong>
-                <small>Envoyée le {day(q.createdAt)}{q.weddingDate ? ` · mariage le ${day(q.weddingDate)}` : ""}</small></div>
-                <span className="pp-reco" style={{ marginLeft: "auto" }}>{STATUS[q.status] ?? q.status}</span></div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="empty" style={{ marginTop: 24 }}><strong>Aucune demande pour l’instant.</strong>Les demandes de devis envoyées en étant connecté apparaissent ici. <Link href="/prestataires">Trouver un prestataire →</Link></div>
-      )}
+      <div key={tab} className="tab-in">
+        {tab !== "demandes" ? (
+          list.length ? <div className="feed" style={{ marginTop: 24 }}>{list.map((v) => <VendorCard key={v.id} v={v} />)}</div> : (
+            <div className="empty" style={{ marginTop: 24 }}>
+              <strong>{tab === "favoris" ? "Aucun favori pour l’instant." : "Vous ne suivez encore personne."}</strong>
+              {tab === "favoris" ? "Touchez ♥ sur une carte pour garder un prestataire sous la main." : "Touchez « Suivre » sur un profil pour ne rien manquer de ses réalisations."} <Link href="/prestataires">Explorer les prestataires →</Link>
+            </div>
+          )
+        ) : !inquiries ? <p aria-busy="true" style={{ color: "var(--muted)", marginTop: 24 }}>Chargement…</p> : inquiries.length ? (
+          <ul className="reviews" style={{ marginTop: 24, listStyle: "none", padding: 0 }}>
+            {inquiries.map((q) => (
+              <li key={q.id} className="review">
+                <div className="rv-top"><div><strong>{q.vendor ? <Link href={vendorUrl(q.vendor.slug)}>{q.vendor.name}</Link> : "Prestataire indisponible"}</strong>
+                  <small>Envoyée le {day(q.createdAt)}{q.weddingDate ? ` · mariage le ${day(q.weddingDate)}` : ""}</small></div>
+                  <span className="pp-reco" style={{ marginLeft: "auto" }}>{STATUS[q.status] ?? q.status}</span></div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="empty" style={{ marginTop: 24 }}><strong>Aucune demande pour l’instant.</strong>Les demandes de devis envoyées en étant connecté apparaissent ici. <Link href="/prestataires">Trouver un prestataire →</Link></div>
+        )}
+      </div>
     </>
   );
 }

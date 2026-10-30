@@ -77,3 +77,21 @@
 .mk .tm8 img { position: absolute; }
 @media (max-width: 1023px) { .mk:has(.mbar) { padding-bottom: 84px; } }
 .mk .dir-filters select { appearance: none; padding-right: 30px; background: var(--coal-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23C4975A' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center; text-overflow: ellipsis; }
+
+/* ---------- Micro-animations ---------- */
+/* Retour au toucher : la seule réponse visuelle sur téléphone, où le survol n'existe pas */
+.mk .act { transition: border-color .3s, color .3s, background .3s, transform .16s var(--ease); }
+.mk .btn:active:not(:disabled), .mk .act:active:not(:disabled), .mk .chip:active:not(:disabled) { transform: scale(.97); transition-duration: .12s; }
+/* Le numéro remplace le bouton « Afficher le numéro » */
+.mk .act.reveal { animation: softIn .2s var(--ease); }
+/* Contenu de l'onglet de « Mon compte » */
+.mk .tab-in { animation: softIn .18s var(--ease); }
+@keyframes softIn { from { opacity: 0; transform: translateY(6px); } }
+/* FAQ : sans ::details-content, l'ouverture reste instantanée */
+@supports (interpolate-size: allow-keywords) and selector(::details-content) {
+  .mk .faq { interpolate-size: allow-keywords; }
+  .mk .faq details::details-content { height: 0; opacity: 0; overflow: clip; transition: height .25s var(--ease), opacity .25s var(--ease), content-visibility .25s allow-discrete; }
+  .mk .faq details[open]::details-content { height: auto; opacity: 1; }
+  /* ::details-content n'est pas couvert par la règle globale de marketplace.css */
+  @media (prefers-reduced-motion: reduce) { .mk .faq details::details-content { transition: none; } }
+}
