@@ -160,3 +160,28 @@
 @keyframes fabMsg { 0%, 100% { opacity: 0; } 8%, 88% { opacity: 1; } }
 /* Le texte masqué de chaque story reste dans sa rangée : sinon il crée un défilement horizontal de la page */
 .mk .story { position: relative; }
+
+/* ---------- « Comment ça marche » : progression liée au défilement ---------- */
+/* Sans prise en charge du navigateur, ou avec « réduire les animations » : tout reste affiché normalement */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .mk .step-num { animation: stepNum linear both; }
+    .mk .step-icon { animation: stepIcon linear both; }
+    .mk .step h3, .mk .step p { animation: stepText linear both; }
+    /* Téléphone : chaque étape avance quand elle traverse l'écran */
+    .mk .step-num, .mk .step-icon, .mk .step h3, .mk .step p { animation-timeline: view(); animation-range: entry 30% cover 45%; }
+    /* Ordinateur : la ligne avance et allume les étapes l'une après l'autre */
+    @media (min-width: 900px) {
+      .mk .steps { view-timeline: --steps block; }
+      .mk .steps-line i { animation: stepLine linear both; animation-timeline: --steps; animation-range: cover 10% cover 50%; }
+      .mk .step-num, .mk .step-icon, .mk .step h3, .mk .step p { animation-timeline: --steps; animation-range: cover var(--from) cover var(--to); }
+      .mk .step:nth-of-type(1) { --from: 10%; --to: 20%; }
+      .mk .step:nth-of-type(2) { --from: 23%; --to: 33%; }
+      .mk .step:nth-of-type(3) { --from: 37%; --to: 47%; }
+    }
+  }
+}
+@keyframes stepLine { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes stepNum { from { color: transparent; } to { color: var(--wine); } }
+@keyframes stepIcon { from { opacity: .3; transform: scale(.8); } to { opacity: 1; transform: none; } }
+@keyframes stepText { from { opacity: .35; } to { opacity: 1; } }
