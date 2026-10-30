@@ -66,6 +66,22 @@ export default async function Accueil() {
         </div>
       </section>
 
+      {/* Aucune vitrine publiée : une seule section utile, et les liens #recommandations et #feed y mènent */}
+      {!feat && (
+        <section className="section light home-soon" id="recommandations" aria-labelledby="soon-title">
+          <span id="feed" />
+          <div className="container">
+            <p className="eyebrow">La sélection NDOA</p>
+            <h2 className="display h2" id="soon-title">Nos premières <em style={{ color: "var(--wine)" }}>recommandations</em> arrivent.</h2>
+            <p className="lead">Les vitrines sont publiées dès leur validation par l’équipe NDOA. En attendant, préparez sereinement votre mariage.</p>
+            <div className="cta-actions">
+              <Link className="btn btn-dark" href="/budget-mariage">Calculer mon budget <span className="arrow">→</span></Link>
+              <Link className="btn btn-ghost-dark" href="/pro">Vous êtes prestataire ?</Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {feat && (
         <section className="section light" id="recommandations" aria-labelledby="reco-title">
           <div className="container">
@@ -115,7 +131,7 @@ export default async function Accueil() {
         </section>
       )}
 
-      <section className="section" id="feed" aria-labelledby="feed-title">
+      {h.vendors.length > 0 && <section className="section" id="feed" aria-labelledby="feed-title">
         <div className="container">
           <div className="section-head">
             <div>
@@ -124,14 +140,10 @@ export default async function Accueil() {
             </div>
             <p className="lead">Suivez vos coups de cœur, ajoutez-les à vos favoris, comparez les tarifs. Survolez une carte pour feuilleter sa galerie.</p>
           </div>
-          {h.vendors.length ? (
-            <div className="feed">{h.vendors.slice(0, 8).map((v) => <VendorCard key={v.slug} v={v} />)}</div>
-          ) : (
-            <div className="empty"><strong>Les premiers talents arrivent.</strong>Les vitrines sont publiées dès leur validation par l’équipe NDOA. <Link href="/pro">Vous êtes prestataire ? Rejoignez NDOA →</Link></div>
-          )}
+          <div className="feed">{h.vendors.slice(0, 8).map((v) => <VendorCard key={v.slug} v={v} />)}</div>
           <div className="feed-more"><Link className="btn btn-ghost" href="/prestataires">Explorer tous les prestataires <span className="arrow">→</span></Link></div>
         </div>
-      </section>
+      </section>}
 
       <section className="section light" id="comment-ca-marche" aria-labelledby="how-title">
         <div className="container">
@@ -156,6 +168,19 @@ export default async function Accueil() {
                 <p>{p}</p>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section budget-teaser" aria-labelledby="bt-title">
+        <div className="container">
+          <div>
+            <p className="eyebrow">Outil gratuit</p>
+            <h2 className="display h2" id="bt-title">Combien pour <em className="gold-text">votre</em> grand jour ?</h2>
+          </div>
+          <div>
+            <p className="lead">Indiquez votre budget en dollars et le nombre d’invités : obtenez une répartition claire, poste par poste, en moins d’une minute.</p>
+            <Link className="btn btn-gold" href="/budget-mariage">Calculer mon budget <span className="arrow">→</span></Link>
           </div>
         </div>
       </section>

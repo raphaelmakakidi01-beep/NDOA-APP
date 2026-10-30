@@ -1,15 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { useCouple } from "@/lib/public/couple";
 
 const LINKS = [
   { href: "/prestataires", label: "Prestataires" },
   { href: "/inspiration", label: "Inspiration" },
   { href: "/#recommandations", label: "Recommandations" },
+  { href: "/budget-mariage", label: "Budget" },
   { href: "/#comment-ca-marche", label: "Comment ça marche" },
 ];
+
+/** Lit l'URL : isolé dans un Suspense pour que le reste de la barre reste dans la page préconstruite */
+function CurrentLink({ href, label }: { href: string; label: string }) {
+  const pathname = usePathname();
+  return <Link href={href} aria-current={pathname.startsWith(href) ? "page" : undefined}>{label}</Link>;
+}
 
 export function MkNav() {
   const couple = useCouple();
@@ -37,7 +45,7 @@ export function MkNav() {
           <Link className="logo" href="/" aria-label="NDOA Wedding — accueil"><img src="/brand/ndoa-ivoire.webp" alt="" width="92" height="38" /></Link>
           <nav aria-label="Navigation principale">
             <ul className="nav-links">
-              {LINKS.map((l) => <li key={l.href}><Link href={l.href}>{l.label}</Link></li>)}
+              {LINKS.map((l) => <li key={l.href}><Suspense fallback={<Link href={l.href}>{l.label}</Link>}><CurrentLink {...l} /></Suspense></li>)}
             </ul>
           </nav>
           <div className="nav-actions">

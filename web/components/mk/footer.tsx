@@ -17,6 +17,7 @@ export function MkFooter() {
               <li><Link href="/prestataires">Tous les prestataires</Link></li>
               <li><Link href="/#recommandations">Recommandations</Link></li>
               <li><Link href="/inspiration">Inspiration</Link></li>
+              <li><Link href="/budget-mariage">Calculateur de budget</Link></li>
               <li><Link href="/mon-compte">Mon compte</Link></li>
             </ul></div>
             <div><h4>Catégories</h4><ul>

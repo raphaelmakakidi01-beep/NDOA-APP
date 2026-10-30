@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/config";
+import { DEMO, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/config";
 
 /*
  * Contenus éditables depuis l'admin (Pages et contenus) : pages légales, FAQ, textes de l'accueil.
@@ -37,6 +37,7 @@ export async function getSiteTexts(): Promise<SiteTexts> {
   "use cache";
   cacheLife("hours");
   cacheTag("accueil", "pages");
+  if (DEMO) return { contactWhatsapp: "243000000000" };
   const c = db();
   if (!c) return {};
   const { data } = await c.from("site_settings").select("key, value").in("key", ["accueil.hero", "general.contact"]);

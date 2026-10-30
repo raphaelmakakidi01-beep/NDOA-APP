@@ -95,3 +95,69 @@
   /* ::details-content n'est pas couvert par la règle globale de marketplace.css */
   @media (prefers-reduced-motion: reduce) { .mk .faq details::details-content { transition: none; } }
 }
+
+/* ---------- Navigation fluide ---------- */
+.mk .page-in { animation: pageIn .28s ease-out; }
+@keyframes pageIn { from { opacity: 0; } }
+.mk [id] { scroll-margin-top: calc(var(--nav-h) + 16px); }
+.mk .route-bar { position: fixed; z-index: 1000; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gold-lo), var(--gold-hi)); transform: scaleX(0); transform-origin: left; opacity: 0; pointer-events: none; }
+.mk .route-bar.run { opacity: 1; transform: scaleX(.85); transition: transform 6s cubic-bezier(.08, .7, .2, 1); }
+.mk .route-bar.end { opacity: 0; transform: scaleX(1); transition: transform .2s ease-out, opacity .25s ease-out .1s; }
+.mk .nav-links a[aria-current="page"] { color: var(--text); }
+.mk .nav-links a[aria-current="page"]::after { transform: scaleX(1); }
+
+
+/* ---------- Accueil sans vitrine, invitation au budget ---------- */
+.mk .home-soon .container { display: grid; justify-items: start; gap: 18px; }
+.mk .home-soon .eyebrow { margin: 0; }
+.mk .home-soon .lead { color: var(--ink-muted); }
+.mk .home-soon .cta-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-start; margin: 8px 0 0; }
+.mk .btn-ghost-dark { border: 1px solid var(--ink-line); color: var(--ink-text); }
+.mk .btn-ghost-dark:hover { border-color: var(--wine); color: var(--wine); }
+.mk .budget-teaser .container { display: grid; gap: 24px; align-items: end; }
+.mk .budget-teaser .lead { margin-bottom: 22px; }
+@media (min-width: 900px) { .mk .budget-teaser .container { grid-template-columns: 1.2fr 1fr; gap: 64px; } }
+
+/* ---------- Bouton WhatsApp flottant ---------- */
+.mk .wa-fab { position: fixed; z-index: 85; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; min-height: 56px; min-width: 56px; padding: 8px; border-radius: 999px; background: #1f9d55; color: #fff; box-shadow: 0 14px 34px -10px rgba(0, 0, 0, .75); transition: transform .16s var(--ease), background .3s; animation: fabIn .5s var(--ease) .6s backwards; }
+.mk .wa-fab:hover { background: #18854a; }
+.mk .wa-fab:active { transform: scale(.97); }
+.mk .wa-fab .ico { flex: 0 0 auto; width: 26px; height: 26px; margin-inline: 7px; }
+.mk .wa-fab-msg { display: none; padding-right: 14px; font-size: .78rem; line-height: 1.3; }
+.mk .wa-fab-msg b { display: block; font-size: .88rem; }
+@media (min-width: 700px) { .mk .wa-fab-msg { display: block; } }
+@keyframes fabIn { from { opacity: 0; transform: translateY(12px) scale(.95); } }
+
+/* ---------- Calculateur de budget ---------- */
+.mk .bud { display: grid; gap: 20px; margin-top: 32px; }
+@media (min-width: 960px) { .mk .bud { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; gap: 28px; } }
+.mk .bud-form, .mk .bud-out { padding: clamp(18px, 3vw, 30px); border: 1px solid var(--line); border-radius: 22px; background: rgba(23, 23, 26, .6); }
+.mk .bud-form { display: grid; gap: 26px; }
+@media (min-width: 960px) { .mk .bud-form { position: sticky; top: calc(var(--nav-h) + 16px); } }
+.mk .bud-field { display: grid; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.mk .bud-field label, .mk .bud-field legend { padding: 0; font-size: .82rem; font-weight: 700; color: rgba(245, 240, 232, .85); }
+.mk .bud-field legend { margin-bottom: 10px; }
+.mk .bud-num { width: 100%; height: 52px; padding: 0 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--coal-2); color: var(--text); font-family: var(--serif); font-size: 1.5rem; }
+.mk .bud-num:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+.mk .bud-field input[type="range"] { width: 100%; height: 28px; accent-color: var(--gold); }
+.mk .bud-styles { display: flex; flex-wrap: wrap; gap: 8px; }
+.mk .bud-sum { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.mk .bud-sum small { display: block; color: var(--muted); font-size: .78rem; }
+.mk .bud-sum b { font-family: var(--serif); font-size: clamp(1.6rem, 4vw, 2.5rem); font-weight: 500; color: var(--gold-hi); font-variant-numeric: tabular-nums; }
+.mk .bud-lines { display: grid; gap: 16px; margin: 20px 0; padding: 0; list-style: none; }
+.mk .bud-line { display: flex; justify-content: space-between; gap: 12px; font-size: .92rem; }
+.mk .bud-line a { text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.mk .bud-line a:hover { color: var(--gold-hi); }
+.mk .bud-amt { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+.mk .bud-amt small { color: var(--muted); }
+.mk .bud-bar { display: block; height: 4px; margin-top: 7px; overflow: hidden; border-radius: 4px; background: rgba(245, 240, 232, .08); }
+.mk .bud-bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--gold-lo), var(--gold)); transform-origin: left; transition: transform .45s var(--ease); }
+.mk .bud-note { margin: 0 0 20px; color: var(--muted); font-size: .82rem; line-height: 1.55; }
+.mk .bud-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.mk .bud-actions .btn { flex: 1 1 auto; height: auto; min-height: 48px; white-space: normal; text-align: center; }
+.mk .bud-actions .ico { width: 18px; height: 18px; flex: 0 0 auto; }
+/* Sur téléphone, le message s'affiche quelques secondes en bulle, puis laisse la place au contenu */
+@media (max-width: 699px) {
+  .mk .wa-fab-msg { display: block; position: absolute; right: 0; bottom: calc(100% + 10px); width: max-content; max-width: 230px; padding: 10px 14px; border-radius: 14px; background: var(--ivory); color: var(--ink); box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .7); pointer-events: none; opacity: 0; animation: fabMsg 7s ease-out 1.2s; }
+}
+@keyframes fabMsg { 0%, 100% { opacity: 0; } 6%, 90% { opacity: 1; } }
