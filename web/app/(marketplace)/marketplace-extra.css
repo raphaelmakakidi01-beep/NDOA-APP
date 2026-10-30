@@ -12,15 +12,19 @@
 .mk .dir-head { padding-top: calc(var(--nav-h) + clamp(28px, 5vw, 64px)); }
 .mk .dir-head h1 { font-size: clamp(2.4rem, 6vw, 4.6rem); margin: 0; }
 .mk .dir-head p { color: var(--muted); max-width: 60ch; }
-.mk .dir-filters { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 28px 0 18px; padding: 14px; border: 1px solid var(--line); border-radius: 22px; background: rgba(23, 23, 26, .6); }
-.mk .dir-filters .q { grid-column: 1 / -1; }
-.mk .dir-filters label { display: grid; gap: 4px; font-size: .6875rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-.mk .dir-filters input, .mk .dir-filters select { height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--coal-2); padding: 0 12px; font-size: .95rem; letter-spacing: 0; text-transform: none; font-weight: 500; color: var(--text); }
+.mk .dir-filters { display: grid; gap: 14px 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 28px 0 18px; padding: 16px; border: 1px solid var(--line); border-radius: 22px; background: rgba(23, 23, 26, .6); }
+.mk .dir-filters .q, .mk .dir-filters .btn { grid-column: 1 / -1; }
+.mk .dir-filters label { display: grid; gap: 6px; min-width: 0; font-size: .6875rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.mk .dir-filters input, .mk .dir-filters select { width: 100%; min-width: 0; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--coal-2); padding: 0 12px; font-size: .95rem; letter-spacing: 0; text-transform: none; font-weight: 500; color: var(--text); }
 .mk .dir-filters select option { color: var(--text); background: var(--coal-2); }
 .mk .dir-filters .btn { align-self: end; height: 44px; }
 @media (min-width: 900px) {
-  .mk .dir-filters { grid-template-columns: 1.6fr repeat(6, minmax(0, 1fr)) auto; align-items: end; }
-  .mk .dir-filters .q { grid-column: auto; }
+  /* Deux lignes : recherche, date et bouton ; puis les cinq filtres */
+  .mk .dir-filters { grid-template-columns: repeat(10, minmax(0, 1fr)); align-items: end; padding: 20px; }
+  .mk .dir-filters > label { grid-column: span 2; }
+  .mk .dir-filters > label:has(input[type="date"]) { grid-column: 7 / 9; grid-row: 1; }
+  .mk .dir-filters .btn { grid-column: 9 / 11; grid-row: 1; }
+  .mk .dir-filters > .q { grid-column: 1 / 7; grid-row: 1; }
 }
 .mk .dir-meta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 18px; color: var(--muted); font-size: .9rem; }
 .mk .dir-meta a { color: var(--gold-hi); font-weight: 700; }
