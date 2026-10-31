@@ -5,6 +5,13 @@
   input:not([type="checkbox"], [type="radio"], [type="range"]), select, textarea { font-size: 16px !important; }
 }
 
+/* Pages d'inscription et de connexion : arrivée douce du contenu, photo qui respire lentement */
+.auth-rise { animation: authRise .6s cubic-bezier(.22, 1, .36, 1) var(--rise, 0ms) backwards; }
+.auth-zoom { animation: authZoom 24s ease-in-out infinite alternate; }
+@keyframes authRise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes authZoom { from { transform: scale(1.02); } to { transform: scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .auth-rise, .auth-zoom { animation: none; } }
+
 /* Le thème sombre est piloté par la classe `.dark` (next-themes) */
 @custom-variant dark (&:where(.dark, .dark *));
 

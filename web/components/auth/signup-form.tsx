@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
@@ -69,8 +69,8 @@ export function SignupForm() {
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-4">
       <div className="mb-1">
-        <h1 className="font-display text-[2rem] leading-[1.05] sm:text-[2.25rem]">Créez votre <em className="text-gold-ink">{couple ? "compte" : "vitrine"}</em></h1>
-        <p className="mt-1.5 text-[15px] text-muted">{couple ? "Facultatif : gardez vos favoris, vos prestataires suivis et vos demandes de devis." : "Gratuit et sans engagement."}</p>
+        <h1 className="font-display text-[2.25rem] leading-[1.05] sm:text-[2.6rem]">{couple ? <>Créez votre <em className="text-gold-ink">compte</em></> : <>Bienvenue, créons votre <em className="text-gold-ink">vitrine</em></>}</h1>
+        <p className="mt-2 text-[15px] leading-relaxed text-muted">{couple ? "Facultatif : gardez vos favoris, vos prestataires suivis et vos demandes de devis." : "Quelques informations suffisent pour commencer. C’est gratuit et sans carte bancaire."}</p>
       </div>
 
       {GOOGLE_AUTH_ENABLED && <><GoogleButton /><OrSeparator /></>}
@@ -153,7 +153,7 @@ export function SignupForm() {
         {errors.terms && <p id="terms-err" role="alert" className="text-[13px] font-medium text-danger">{errors.terms}</p>}
       </div>
 
-      <Button type="submit" size="lg" loading={busy} className="mt-1 w-full">Créer mon compte</Button>
+      <Button type="submit" size="lg" loading={busy} className="mt-1 w-full">{couple ? "Créer mon compte" : <>Commencer ma vitrine <ArrowRight aria-hidden /></>}</Button>
       <p className="text-center text-sm text-muted">
         Déjà inscrit ? <Link href={couple ? "/connexion?suite=/mon-compte&compte=couple" : "/connexion"} className={linkCls}>Se connecter</Link>
       </p>
