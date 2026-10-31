@@ -1,5 +1,6 @@
 "use client";
 
+import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import { useState } from "react";
 import Link from "next/link";
 import { DropdownMenu } from "radix-ui";
@@ -288,8 +289,8 @@ export function Tarifs() {
       </div>
       {full && (
         <p id="pkg-full" className="-mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-gold/40 bg-gold/8 px-4 py-3 text-sm">
-          <Sparkles className="size-4 text-gold-ink" aria-hidden />Vous avez atteint le nombre de forfaits de votre offre.
-          <Link href="/espace/abonnement" className="font-semibold text-gold-ink underline-offset-4 hover:underline">Voir les offres</Link>
+          <Sparkles className="size-4 text-gold-ink" aria-hidden />Vous avez atteint le nombre de forfaits disponibles.
+          {SUBSCRIPTIONS_ENABLED && <Link href="/espace/abonnement" className="font-semibold text-gold-ink underline-offset-4 hover:underline">Voir les offres</Link>}
         </p>
       )}
 

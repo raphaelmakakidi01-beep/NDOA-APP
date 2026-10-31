@@ -31,8 +31,8 @@ function CguDefault() {
       </ul>
       <h2>5. Avis</h2>
       <p>Les avis sont déposés par les couples via un lien unique transmis par le prestataire. Un avis publié ne peut pas être modifié par le prestataire, qui peut y répondre publiquement.</p>
-      <h2>6. Abonnements prestataires</h2>
-      <p>Les offres Pro et Prestige sont payantes, sans engagement au-delà de la période payée. Le renouvellement peut être arrêté à tout moment depuis l’espace prestataire. <Todo>conditions de remboursement</Todo></p>
+      <h2>6. Offres prestataires</h2>
+      <p>L’inscription et la publication d’une vitrine sont gratuites pour le moment. Si des offres payantes sont proposées plus tard, leurs conditions seront publiées ici avant leur mise en place.</p>
       <h2>7. Responsabilité</h2>
       <p><Todo>clauses de responsabilité à rédiger par le conseil juridique</Todo></p>
       <h2>8. Droit applicable</h2>

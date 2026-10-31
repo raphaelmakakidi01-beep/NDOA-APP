@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { PhoneMockup } from "@/components/public/phone-mockup";
 import { SiteFooter, SiteHeader } from "@/components/public/site-chrome";
 import { OFFERS, PLANS, type PlanId } from "@/lib/espace/types";
+import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import { MIN_PHOTOS } from "@/lib/onboarding/types";
 import { cn } from "@/lib/utils";
 
@@ -28,11 +29,11 @@ const TIERS: { id: PlanId; features: string[] }[] = [
 ];
 
 const FAQ = [
-  { q: "Est-ce vraiment gratuit ?", a: `Oui. L’offre Gratuit permet de publier une vitrine complète (jusqu’à ${PLANS.free.maxPhotos} photos) et de recevoir toutes vos demandes de devis. Les offres Pro et Prestige ajoutent de la place, des vidéos, des stories et des statistiques détaillées.` },
+  { q: "Est-ce vraiment gratuit ?", a: `Oui. Vous pouvez publier une vitrine complète (jusqu’à ${PLANS.free.maxPhotos} photos) et recevoir toutes vos demandes de devis.${SUBSCRIPTIONS_ENABLED ? " Les offres Pro et Prestige ajoutent de la place, des vidéos, des stories et des statistiques détaillées." : ""}` },
   { q: "Comment les couples me contactent-ils ?", a: "Depuis votre vitrine : par une demande de devis, qui arrive dans votre espace, ou directement sur WhatsApp et par téléphone si vous affichez ces contacts." },
   { q: "Pourquoi ma vitrine est-elle vérifiée avant sa publication ?", a: "Pour que les couples ne trouvent que de vrais prestataires avec de vraies réalisations. La vérification concerne la première publication ; vos modifications suivantes sont en ligne tout de suite." },
-  { q: "Comment payer un abonnement ?", a: "Par Mobile Money ou par carte, en dollars ou en francs congolais. L’abonnement s’arrête quand vous le souhaitez, sans engagement au-delà de la période payée ; l’engagement annuel coûte 10 mois au lieu de 12." },
-  { q: "Puis-je travailler à plusieurs sur la vitrine ?", a: `Oui, avec Pro (${OFFERS.pro.seats} personnes) ou Prestige (${OFFERS.prestige.seats} personnes). Chaque membre a son rôle : gérant, éditeur ou lecteur.` },
+  ...(SUBSCRIPTIONS_ENABLED ? [{ q: "Comment payer un abonnement ?", a: "Par Mobile Money ou par carte, en dollars ou en francs congolais. L’abonnement s’arrête quand vous le souhaitez, sans engagement au-delà de la période payée ; l’engagement annuel coûte 10 mois au lieu de 12." }] : []),
+  ...(SUBSCRIPTIONS_ENABLED ? [{ q: "Puis-je travailler à plusieurs sur la vitrine ?", a: `Oui, avec Pro (${OFFERS.pro.seats} personnes) ou Prestige (${OFFERS.prestige.seats} personnes). Chaque membre a son rôle : gérant, éditeur ou lecteur.` }] : []),
   { q: "Mes photos m’appartiennent-elles toujours ?", a: "Oui. Vous restez propriétaire de vos contenus et pouvez les exporter ou les supprimer à tout moment depuis vos paramètres." },
 ];
 
@@ -54,7 +55,7 @@ export default function ProHome() {
               <Button asChild size="lg"><Link href="/inscription">Créer ma vitrine gratuitement <ArrowRight aria-hidden /></Link></Button>
               <Button asChild variant="outline" size="lg"><Link href="/connexion">J’ai déjà un compte</Link></Button>
             </div>
-            <p className="text-sm text-muted">Gratuit pour commencer · sans carte bancaire · photographes, salles, traiteurs, DJ, décorateurs…</p>
+            <p className="text-sm text-muted">Gratuit · sans carte bancaire · photographes, salles, traiteurs, DJ, décorateurs…</p>
           </div>
           <PhoneMockup />
         </section>
@@ -95,7 +96,7 @@ export default function ProHome() {
         </section>
 
         {/* Tarifs */}
-        <section id="tarifs" aria-labelledby="tarifs-titre" className="scroll-mt-6">
+        {SUBSCRIPTIONS_ENABLED && <section id="tarifs" aria-labelledby="tarifs-titre" className="scroll-mt-6">
           <div className="mx-auto w-full max-w-[1280px] px-5 py-20 sm:px-8 lg:py-28">
             <h2 id="tarifs-titre" className="font-display text-4xl leading-[1.02] sm:text-5xl">Commencez gratuitement, <em className="text-gold-ink">grandissez ensuite.</em></h2>
             <p className="mt-4 max-w-xl text-muted">Prix par mois. Sans engagement ; en annuel, 12 mois pour le prix de 10.</p>
@@ -123,7 +124,7 @@ export default function ProHome() {
             </div>
             <p className="mt-6 text-sm text-muted">Les offres payantes s’activent depuis votre espace, une fois la vitrine créée.</p>
           </div>
-        </section>
+        </section>}
 
         {/* Questions fréquentes */}
         <section id="faq" aria-labelledby="faq-titre" className="scroll-mt-6 border-t border-line">

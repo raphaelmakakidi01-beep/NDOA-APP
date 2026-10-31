@@ -1,3 +1,4 @@
+import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Logo, ThemeToggle } from "@/components/brand";
@@ -34,7 +35,7 @@ export function SiteFooter() {
           <p className="mb-1 text-xs font-bold uppercase tracking-[.16em] text-muted">Prestataires</p>
           <Link href="/inscription" className={linkCls}>Créer ma vitrine</Link>
           <Link href="/connexion" className={linkCls}>Connexion</Link>
-          <Link href="/pro#tarifs" className={linkCls}>Tarifs</Link>
+          {SUBSCRIPTIONS_ENABLED && <Link href="/pro#tarifs" className={linkCls}>Tarifs</Link>}
           <Link href="/pro#faq" className={linkCls}>Questions fréquentes</Link>
         </nav>
         <nav aria-label="Informations légales" className="grid content-start gap-2.5 text-sm">

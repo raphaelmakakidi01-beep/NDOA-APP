@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import { motion } from "motion/react";
 import { ArrowDownRight, ArrowUpRight, BarChart3, Eye, Inbox, Lock, MousePointerClick, Sparkles, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,8 +40,8 @@ function Locked({ locked, children, title }: { locked: boolean; children: React.
         <div className="sticky top-28 h-fit max-w-sm rounded-3xl border border-gold/50 bg-surface/95 p-6 text-center shadow-2xl backdrop-blur">
           <span className="mx-auto mb-3 grid size-11 place-items-center rounded-2xl bg-gold/15 text-gold-ink"><Lock className="size-5" aria-hidden /></span>
           <p className="font-display text-xl">{title}</p>
-          <p className="mt-2 text-sm text-muted">Sources du trafic, photos qui convertissent et comparaison avec votre catégorie : inclus dans les offres Pro et Prestige.</p>
-          <Button asChild className="mt-4"><Link href="/espace/abonnement"><Sparkles aria-hidden />Voir les offres</Link></Button>
+          <p className="mt-2 text-sm text-muted">Sources du trafic, photos qui convertissent et comparaison avec votre catégorie : {SUBSCRIPTIONS_ENABLED ? "inclus dans les offres Pro et Prestige." : "bientôt disponibles."}</p>
+          {SUBSCRIPTIONS_ENABLED && <Button asChild className="mt-4"><Link href="/espace/abonnement"><Sparkles aria-hidden />Voir les offres</Link></Button>}
         </div>
       </div>
     </div>

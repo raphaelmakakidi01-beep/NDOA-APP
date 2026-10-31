@@ -1,5 +1,6 @@
 "use client";
 
+import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -272,9 +273,9 @@ function Equipe() {
   return (
     <div className="grid grid-cols-1 gap-6">
       <Card>
-        <CardHeader title="Équipe" sub={`Places utilisées : ${acc.activeMembers} sur ${acc.seats} · offre ${PLANS[data.plan].name}`}
+        <CardHeader title="Équipe" sub={`Places utilisées : ${acc.activeMembers} sur ${acc.seats}${SUBSCRIPTIONS_ENABLED ? ` · offre ${PLANS[data.plan].name}` : ""}`}
           action={<Button size="sm" onClick={() => { setErr(""); setOpen(true); }} disabled={full}><UserPlus aria-hidden />Inviter</Button>} />
-        {full && <p className="mb-4 rounded-2xl border border-gold/40 bg-gold/8 px-4 py-3 text-sm">Toutes les places sont prises. {data.plan !== "prestige" && <Link href="/espace/abonnement" className="font-semibold text-gold-ink underline-offset-4 hover:underline">L’offre {data.plan === "free" ? "Pro" : "Prestige"} inclut {OFFERS[data.plan === "free" ? "pro" : "prestige"].seats} places.</Link>}</p>}
+        {full && <p className="mb-4 rounded-2xl border border-gold/40 bg-gold/8 px-4 py-3 text-sm">Toutes les places sont prises. {SUBSCRIPTIONS_ENABLED && data.plan !== "prestige" && <Link href="/espace/abonnement" className="font-semibold text-gold-ink underline-offset-4 hover:underline">L’offre {data.plan === "free" ? "Pro" : "Prestige"} inclut {OFFERS[data.plan === "free" ? "pro" : "prestige"].seats} places.</Link>}</p>}
         <ul className="divide-y divide-line">
           {data.members.map((m) => {
             const name = m.you ? user.fullName || "Vous" : m.name ?? m.email;

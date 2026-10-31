@@ -1,5 +1,7 @@
 import { BarChart3, Calendar, CreditCard, Home, Images, Inbox, MessageSquareQuote, Settings, Store, Tags } from "lucide-react";
 
+import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
+
 /** Navigation de l’espace. `ready` = section disponible (toutes depuis l’étape 5). */
 export const NAV = [
   { href: "/espace", label: "Accueil", icon: Home, ready: true },
@@ -12,7 +14,7 @@ export const NAV = [
   { href: "/espace/statistiques", label: "Statistiques", icon: BarChart3, ready: true },
   { href: "/espace/abonnement", label: "Abonnement", icon: CreditCard, ready: true },
   { href: "/espace/parametres", label: "Paramètres", icon: Settings, ready: true },
-];
+].filter((n) => SUBSCRIPTIONS_ENABLED || n.href !== "/espace/abonnement");
 
 /** Barre d’onglets mobile : 4 raccourcis + « Plus » */
 export const MOBILE_TABS = ["/espace", "/espace/demandes", "/espace/galerie", "/espace/tarifs"];

@@ -12,6 +12,7 @@ import { signOut } from "@/lib/auth";
 import { EspaceProvider, useEspaceMaybe } from "@/lib/espace/store";
 import { PLANS } from "@/lib/espace/types";
 import { cn } from "@/lib/utils";
+import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import { MOBILE_TABS, NAV } from "./nav";
 import { ReviewBanner } from "./review-banner";
 
@@ -66,7 +67,7 @@ function VendorBadge({ compact }: { compact?: boolean }) {
       {!compact && (
         <div className="min-w-0 leading-tight">
           <p className="truncate text-sm font-semibold">{vendor.name}</p>
-          <p className="text-xs text-gold-ink">Offre {PLANS[data.plan].name}</p>
+          {SUBSCRIPTIONS_ENABLED && <p className="text-xs text-gold-ink">Offre {PLANS[data.plan].name}</p>}
         </div>
       )}
     </div>
@@ -171,7 +172,7 @@ function UserMenu() {
       <DropdownMenu.Portal>
         <DropdownMenu.Content align="end" sideOffset={8} className="z-50 min-w-56 rounded-2xl border border-line bg-surface p-1.5 shadow-2xl">
           <DropdownMenu.Label className="px-3 py-2 text-xs text-muted">{ctx?.user.email ?? ctx?.user.phone ?? "Mon compte"}</DropdownMenu.Label>
-          {[{ href: "/espace/parametres", label: "Paramètres", icon: Settings }, { href: "/espace/abonnement", label: "Mon offre", icon: Sparkles }].map((i) => (
+          {[{ href: "/espace/parametres", label: "Paramètres", icon: Settings }, { href: "/espace/abonnement", label: "Mon offre", icon: Sparkles }].filter((i) => SUBSCRIPTIONS_ENABLED || i.href !== "/espace/abonnement").map((i) => (
             <DropdownMenu.Item key={i.href} asChild>
               <Link href={i.href} className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-surface-2"><i.icon className="size-4 text-muted" aria-hidden />{i.label}</Link>
             </DropdownMenu.Item>

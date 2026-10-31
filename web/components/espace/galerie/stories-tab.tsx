@@ -1,5 +1,6 @@
 "use client";
 
+import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Archive, ArchiveRestore, Check, Clock, Lock, Play, Plus, Trash2 } from "lucide-react";
@@ -82,7 +83,7 @@ export function StoriesTab({ openCreate }: { openCreate?: boolean }) {
 
   if (!allowed) {
     return (
-      <EmptyState icon={<Lock />} title="Stories disponibles avec l’offre Pro" action={<Button asChild><Link href="/espace/abonnement">Voir les offres</Link></Button>}>
+      <EmptyState icon={<Lock />} title={SUBSCRIPTIONS_ENABLED ? "Stories disponibles avec l’offre Pro" : "Stories bientôt disponibles"} action={SUBSCRIPTIONS_ENABLED ? <Button asChild><Link href="/espace/abonnement">Voir les offres</Link></Button> : undefined}>
         Montrez vos coulisses et vos derniers mariages en stories, comme sur Instagram.
       </EmptyState>
     );

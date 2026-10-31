@@ -1,5 +1,6 @@
 "use client";
 
+import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -178,7 +179,7 @@ export function Vitrine() {
 
           {/* Couverture */}
           <Card id="couverture" className="scroll-mt-36" aria-labelledby="h-couverture">
-            <CardHeader id="h-couverture" title="Couverture" sub="Une photo, ou une vidéo courte qui se lance en boucle et sans son (offre Pro)." action={<Button variant="outline" size="sm" onClick={() => setCoverOpen(true)}><Images aria-hidden />Choisir</Button>} />
+            <CardHeader id="h-couverture" title="Couverture" sub={SUBSCRIPTIONS_ENABLED ? "Une photo, ou une vidéo courte qui se lance en boucle et sans son (offre Pro)." : "Une photo, ou une vidéo courte qui se lance en boucle et sans son."} action={<Button variant="outline" size="sm" onClick={() => setCoverOpen(true)}><Images aria-hidden />Choisir</Button>} />
             <div className="relative aspect-[16/7] overflow-hidden rounded-2xl bg-surface-2">
               {form.coverVideo?.posterUrl || form.coverVideo?.url ? (
                 form.coverVideo.url

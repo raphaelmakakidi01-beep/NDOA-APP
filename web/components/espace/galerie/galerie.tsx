@@ -1,5 +1,6 @@
 "use client";
 
+import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -64,7 +65,7 @@ export function Galerie() {
           <Gauge label="Vidéos" used={usage.videos} max={plan.maxVideos} display={plan.maxVideos ? `${usage.videos} / ${plan.maxVideos}` : "Offre Pro"} />
           <Gauge label="Stockage" used={usage.bytes} max={plan.storageMb * 1024 * 1024} display={`${formatBytes(Math.max(usage.bytes, 1))} / ${plan.storageMb >= 1024 ? `${plan.storageMb / 1024} Go` : `${plan.storageMb} Mo`}`} />
           {storagePct >= 80 && (
-            <p className="text-[13px] text-rose-ink sm:col-span-3">Votre espace est presque plein. <Link href="/espace/abonnement" className="font-semibold underline underline-offset-4">Passer à l’offre supérieure</Link></p>
+            <p className="text-[13px] text-rose-ink sm:col-span-3">Votre espace est presque plein. {SUBSCRIPTIONS_ENABLED && <Link href="/espace/abonnement" className="font-semibold underline underline-offset-4">Passer à l’offre supérieure</Link>}</p>
           )}
         </section>
       </div>

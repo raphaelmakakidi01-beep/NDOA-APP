@@ -6,6 +6,7 @@ import { fmt, priceLabel, rate, vendorUrl } from "@/components/mk/format";
 import { Hero } from "@/components/mk/hero";
 import { StoriesRow, Testimonials } from "@/components/mk/home-client";
 import { VendorCard } from "@/components/mk/vendor-card";
+import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import { getHome } from "@/lib/public/data";
 import { getSiteTexts } from "@/lib/public/content";
 
@@ -213,7 +214,7 @@ export default async function Accueil() {
           )}
           <div className="cta-actions">
             <Link className="btn btn-gold" href="/inscription">Créer mon profil gratuitement <span className="arrow">→</span></Link>
-            <Link className="btn btn-ghost" href="/pro#tarifs">Voir les offres</Link>
+            {SUBSCRIPTIONS_ENABLED && <Link className="btn btn-ghost" href="/pro#tarifs">Voir les offres</Link>}
           </div>
         </div>
       </section>
