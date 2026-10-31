@@ -37,12 +37,16 @@ async function Results({ searchParams }: { searchParams: PageProps<"/prestataire
   const cityList = home.cities.length ? home.cities : [...new Set(home.vendors.map((v) => v.city))].sort();
   const cat = home.categories.find((c) => c.slug === q.categorie);
   const filtered = !!(q.q || q.categorie || q.ville || q.budget || q.note || q.date);
+  const active = [q.categorie, q.ville, q.budget, q.note, q.date].filter(Boolean).length;
   const link = (page: number) => directoryUrl({ ...q, page: page > 1 ? String(page) : undefined } as Record<string, string | undefined>);
 
   return (
     <>
       <form className="dir-filters" action="/prestataires" method="get" role="search" aria-label="Filtrer les prestataires">
         <label className="q">Recherche<input name="q" type="search" defaultValue={q.q} placeholder="Nom, style, quartier…" /></label>
+        {/* Téléphone : les filtres sont repliés pour laisser les résultats dans le premier écran */}
+        <input type="checkbox" id="dir-more" className="dir-more-check sr-only" aria-label="Afficher les filtres" />
+        <label htmlFor="dir-more" className="dir-more btn btn-ghost" aria-hidden="true">Filtres{active > 0 && <b>{active}</b>}</label>
         <label>Catégorie
           <Select key={q.categorie} name="categorie" defaultValue={q.categorie} options={[{ value: "", label: "Toutes" }, ...home.categories.map((c) => ({ value: c.slug, label: c.plural }))]} />
         </label>

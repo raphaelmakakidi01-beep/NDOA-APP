@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Téléphone : au-dessous de 16 px, iOS zoome la page à chaque champ touché */
+@media (pointer: coarse) {
+  input:not([type="checkbox"], [type="radio"], [type="range"]), select, textarea { font-size: 16px !important; }
+}
+
 /* Le thème sombre est piloté par la classe `.dark` (next-themes) */
 @custom-variant dark (&:where(.dark, .dark *));
 

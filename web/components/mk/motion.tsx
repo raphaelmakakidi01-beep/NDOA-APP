@@ -79,21 +79,23 @@ export function ScrollReveal() {
     const io = new IntersectionObserver((entries) => {
       entries.filter((en) => en.isIntersecting).forEach((en, i) => {
         io.unobserve(en.target);
-        const delay = Math.min(i, 5) * (en.target.matches(CATEGORY) ? 110 : 60);
+        const delay = Math.min(i, 5) * (!compact && en.target.matches(CATEGORY) ? 110 : 60);
         anims.get(en.target)?.forEach((a) => { a.effect?.updateTiming({ delay }); a.play(); });
       });
     }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
     const timing = { easing: "cubic-bezier(.22,1,.36,1)", fill: "backwards" } as const;
+    // Téléphone : effets plus courts, et rien sur le carrousel du feed dont les cartes arrivent au glissement
+    const compact = matchMedia("(max-width: 699px)").matches;
     document.querySelectorAll(REVEAL).forEach((el) => {
-      if (el.getBoundingClientRect().top <= innerHeight * 0.9) return;
+      if (el.getBoundingClientRect().top <= innerHeight * 0.9 || (compact && el.matches("#feed .card"))) return;
       // Les catégories entrent plus franchement : la carte monte pendant que sa photo se recadre
-      const img = el.matches(CATEGORY) ? el.querySelector("img") : null;
+      const img = !compact && el.matches(CATEGORY) ? el.querySelector("img") : null;
       const list = img
         ? [
             el.animate([{ opacity: 0, transform: "translateY(56px) scale(.96)" }, { opacity: 1, transform: "none" }], { ...timing, duration: 1000 }),
             img.animate([{ transform: "scale(1.18)" }, { transform: "none" }], { ...timing, duration: 1400 }),
           ]
-        : [el.animate([{ opacity: 0, transform: "translateY(18px)" }, { opacity: 1, transform: "none" }], { ...timing, duration: 700 })];
+        : [el.animate([{ opacity: 0, transform: "translateY(18px)" }, { opacity: 1, transform: "none" }], { ...timing, duration: compact ? 450 : 700 })];
       list.forEach((a) => a.pause());
       anims.set(el, list);
       io.observe(el);

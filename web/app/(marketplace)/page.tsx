@@ -139,7 +139,7 @@ export default async function Accueil() {
               <p className="eyebrow">Le feed</p>
               <h2 className="display h2" id="feed-title">Ils font <em className="gold-text">vibrer</em><br />la ville.</h2>
             </div>
-            <p className="lead">Suivez vos coups de cœur, ajoutez-les à vos favoris, comparez les tarifs. Survolez une carte pour feuilleter sa galerie.</p>
+            <p className="lead">Suivez vos coups de cœur, ajoutez-les à vos favoris, comparez les tarifs.</p>
           </div>
           <div className="feed">{h.vendors.slice(0, 8).map((v) => <VendorCard key={v.slug} v={v} />)}</div>
           <div className="feed-more"><Link className="btn btn-ghost" href="/prestataires">Explorer tous les prestataires <span className="arrow">→</span></Link></div>

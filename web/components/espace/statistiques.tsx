@@ -204,7 +204,7 @@ export function Statistiques() {
 
               <Card aria-labelledby="cmp-h" className="lg:col-span-2">
                 <CardHeader id="cmp-h" title={`Vous et la catégorie ${cat}`} sub={b.vendors ? `Moyenne anonymisée de ${b.vendors} prestataires sur 30 jours, ramenée à la période choisie.` : "Pas encore assez de prestataires dans votre catégorie pour comparer."} />
-                <div className="overflow-x-auto">
+                <div className="relative overflow-x-auto">
                   <table className="w-full min-w-[520px] text-sm">
                     <thead><tr className="border-b border-line text-left text-xs uppercase tracking-wide text-muted"><th className="py-2 font-semibold">Indicateur</th><th className="py-2 text-right font-semibold">Vous</th><th className="py-2 text-right font-semibold">Catégorie</th><th className="w-44 py-2 pl-6 font-semibold"><span className="sr-only">Position</span></th></tr></thead>
                     <tbody>

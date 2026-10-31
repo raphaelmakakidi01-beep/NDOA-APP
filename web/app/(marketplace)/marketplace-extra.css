@@ -124,7 +124,7 @@
 .mk .wa-fab:active { transform: scale(.97); }
 .mk .wa-fab .ico { width: 24px; height: 24px; }
 /* Le message reste accessible : quelques secondes à l'arrivée, puis au survol ou au focus */
-.mk .wa-fab-msg { position: absolute; right: 0; bottom: calc(100% + 10px); width: max-content; max-width: 230px; padding: 10px 14px; border-radius: 14px; background: var(--ivory); color: var(--ink); font-size: .78rem; line-height: 1.3; box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .7); pointer-events: none; opacity: 0; transition: opacity .2s ease-out; animation: fabMsg 5s ease-out 1.2s; }
+.mk .wa-fab-msg { position: absolute; right: 0; bottom: calc(100% + 10px); width: max-content; max-width: 230px; padding: 10px 14px; border-radius: 14px; background: var(--ivory); color: var(--ink); font-size: .78rem; line-height: 1.3; box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .7); pointer-events: none; opacity: 0; transition: opacity .2s ease-out; }
 .mk .wa-fab-msg b { display: block; font-size: .88rem; }
 .mk .wa-fab:hover .wa-fab-msg, .mk .wa-fab:focus-visible .wa-fab-msg { opacity: 1; }
 @keyframes fabIn { from { opacity: 0; transform: translateY(12px) scale(.95); } }
@@ -223,3 +223,75 @@
 .mk .dir-filters .sel-btn:hover { border-color: rgba(196, 151, 90, .6); }
 .mk .dir-filters .sel-btn:focus-visible, .mk .dir-filters .sel-btn[aria-expanded="true"] { border-color: var(--gold); outline: 2px solid var(--gold); outline-offset: 1px; }
 .mk .dir-filters .sel-chevron { color: var(--gold); opacity: 1; }
+
+/* ---------- Téléphone : présentation, ergonomie, fluidité ---------- */
+/* Barres fixes presque opaques : le texte qui défile derrière ne se superpose plus, à tous les formats */
+.mk .nav.is-scrolled { background: rgba(10, 10, 11, .985); }
+.mk .mbar { background: rgba(10, 10, 11, .97); }
+.mk .tabs { background: rgba(10, 10, 11, .97); }
+.mk a, .mk button, .mk label, .mk summary { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+/* Toute la carte mène à la vitrine ; le favori et le suivi restent au-dessus */
+.mk .card-body { position: static; }
+.mk .card h3 a::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+/* Toute la case d'un champ de recherche est touchable */
+.mk .sel-btn::after { content: ""; position: absolute; inset: 0; }
+.mk .dir-filters .sel-btn { position: relative; }
+.mk .search .field input[type="date"] { margin-bottom: -10px; padding-bottom: 10px; min-height: 37px; }
+.mk .wa-fab-msg.hello { animation: fabMsg 4.5s ease-out 1.2s; }
+/* Grain animé plein écran : coûteux au défilement, inutile sur téléphone */
+@media (hover: none), (max-width: 899px) { .mk::after { display: none; } }
+/* Filtres de l'annuaire repliables */
+.mk .dir-filters .dir-more, .mk .dir-more-check { display: none; }
+@media (max-width: 899px) {
+  .mk .dir-filters { gap: 10px; padding: 12px; }
+  .mk .dir-more-check { display: block; }
+  .mk .dir-filters .dir-more { display: inline-flex; grid-auto-flow: unset; order: 1; height: 44px; font-size: .9rem; letter-spacing: 0; text-transform: none; color: var(--text); }
+  .mk .dir-more b { display: grid; place-items: center; min-width: 20px; height: 20px; border-radius: 999px; background: var(--gold); color: var(--ink); font-size: .72rem; }
+  .mk .dir-more-check:focus-visible + .dir-more { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .mk .dir-more-check:checked + .dir-more { border-color: var(--gold); color: var(--gold-hi); }
+  .mk .dir-filters .btn { grid-column: auto; order: 2; }
+  .mk .dir-filters > label:not(.q, .dir-more) { display: none; order: 3; }
+  .mk .dir-filters:has(.dir-more-check:checked) > label:not(.q, .dir-more) { display: grid; }
+}
+@media (max-width: 699px) {
+  .mk { --section-y: 56px; --head-gap: 24px; }
+  .mk .section-head { gap: 12px; }
+  /* Héros : le titre et la recherche tiennent dans le premier écran */
+  .mk .hero { min-height: max(100svh, 620px); }
+  .mk .hero-inner { padding-top: calc(var(--nav-h) + 96px); padding-bottom: 20px; }
+  .mk .hero-sub { margin-bottom: 18px; line-height: 1.45; }
+  .mk .hero-credit small { font-size: .7rem; }
+  /* Catégories : grille régulière et compacte */
+  .mk .bento { grid-auto-rows: 118px; gap: 10px; }
+  .mk .cat { padding: 12px; }
+  .mk .cat.tall { grid-row: span 1; }
+  .mk .cat.wide { grid-column: span 1; }
+  .mk .cat.big { grid-row: span 2; }
+  .mk .cat-name { font-size: 1.12rem; }
+  .mk .cat.big .cat-name { font-size: 1.9rem; }
+  .mk .cat-count { margin-top: 3px; font-size: .72rem; }
+  /* Sélection */
+  .mk .feature-media { aspect-ratio: 4/3; }
+  .mk .pick-media { aspect-ratio: 1; }
+  /* Feed de l'accueil : carrousel au doigt au lieu de huit cartes empilées */
+  .mk #feed .feed { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); margin-inline: calc(var(--gutter) * -1); padding: 2px var(--gutter) 8px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .mk #feed .feed::-webkit-scrollbar { display: none; }
+  .mk #feed .card { flex: 0 0 84%; scroll-snap-align: start; }
+  .mk .feed-more { margin-top: 20px; }
+  .mk .feed-more .btn { width: 100%; }
+  /* Étapes : numéro à gauche, texte à droite */
+  .mk .steps { gap: 26px; }
+  .mk .step { display: grid; grid-template-columns: 76px minmax(0, 1fr); column-gap: 12px; }
+  .mk .step-num { grid-row: span 2; align-self: start; padding-right: 0; font-size: 3.4rem; background: none; }
+  .mk .step-icon { display: none; }
+  .mk .step h3 { margin-bottom: 6px; font-size: 1.35rem; }
+  /* Vitrine : le nom et les actions arrivent plus vite */
+  .mk .cover { height: 50svh; min-height: 320px; }
+  /* Boutons d'appel pleine largeur */
+  .mk .cta-actions { display: grid; gap: 10px; width: 100%; }
+  .mk .cta-actions .btn { width: 100%; }
+  .mk .budget-teaser .btn { width: 100%; }
+}
+/* Menu du téléphone : fond plein et texte qui tient sur une ligne */
+.mk .mmenu { background: var(--ink); }
+.mk .mmenu li a { display: block; padding: 7px 0; font-size: clamp(1.7rem, 8vw, 2.1rem); line-height: 1.15; }
