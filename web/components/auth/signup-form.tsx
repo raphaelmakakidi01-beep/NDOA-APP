@@ -11,6 +11,7 @@ import { DemoBanner } from "@/components/brand";
 import { GoogleButton, OrSeparator } from "./google-button";
 import { PhoneInput } from "./phone-input";
 import { signUp, type Channel } from "@/lib/auth";
+import { GOOGLE_AUTH_ENABLED, PHONE_AUTH_ENABLED } from "@/lib/config";
 import { passwordRules, signupSchema, toE164, toFieldErrors, type FieldErrors } from "@/lib/validation";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +19,7 @@ const linkCls = "font-semibold text-gold-ink underline-offset-4 hover:underline"
 
 export function SignupForm() {
   const router = useRouter();
-  const [method, setMethod] = useState<"email" | "phone">("phone");
+  const [method, setMethod] = useState<"email" | "phone">(PHONE_AUTH_ENABLED ? "phone" : "email");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [country, setCountry] = useState("+243");
@@ -72,8 +73,7 @@ export function SignupForm() {
         <p className="mt-1.5 text-[15px] text-muted">{couple ? "Facultatif : gardez vos favoris, vos prestataires suivis et vos demandes de devis." : "Gratuit et sans engagement."}</p>
       </div>
 
-      <GoogleButton />
-      <OrSeparator />
+      {GOOGLE_AUTH_ENABLED && <><GoogleButton /><OrSeparator /></>}
 
       <Field id="f-fullName" label="Nom complet" error={errors.fullName}>
         {({ describedBy, invalid }) => (
@@ -110,7 +110,7 @@ export function SignupForm() {
                 placeholder="vous@studio.cd" aria-describedby={describedBy} aria-invalid={invalid || undefined} />
             )}
           </Field>
-          <button type="button" onClick={() => switchMethod("phone")} className={cn(linkCls, "justify-self-end text-[13px]")}>Utiliser un téléphone</button>
+          {PHONE_AUTH_ENABLED && <button type="button" onClick={() => switchMethod("phone")} className={cn(linkCls, "justify-self-end text-[13px]")}>Utiliser un téléphone</button>}
         </div>
       )}
 

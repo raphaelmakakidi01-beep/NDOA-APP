@@ -1,5 +1,8 @@
 /** Offres payantes visibles sur le site : à activer quand un prestataire de paiement sera branché */
 export const SUBSCRIPTIONS_ENABLED: boolean = false;
+/** Connexions à activer ici une fois configurées dans Supabase (fournisseur Google, envoi de SMS et WhatsApp) */
+export const GOOGLE_AUTH_ENABLED: boolean = false;
+export const PHONE_AUTH_ENABLED: boolean = false;
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 const PROD = process.env.NODE_ENV === "production";

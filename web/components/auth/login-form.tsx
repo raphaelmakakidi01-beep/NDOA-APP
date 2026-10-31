@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { DemoBanner } from "@/components/brand";
 import { GoogleButton, OrSeparator } from "./google-button";
+import { GOOGLE_AUTH_ENABLED, PHONE_AUTH_ENABLED } from "@/lib/config";
 import { requestPasswordReset, signIn } from "@/lib/auth";
 import { safeNext } from "@/lib/safe-redirect";
 
@@ -66,12 +67,11 @@ export function LoginForm() {
         <p className="mt-1.5 text-[15px] text-muted">Retrouvez votre vitrine et vos demandes.</p>
       </div>
       <Suspense fallback={null}><OAuthError /></Suspense>
-      <GoogleButton next={nextFromUrl} />
-      <OrSeparator />
-      <Field id="f-id" label="E-mail ou téléphone" error={error && !password ? error : undefined}>
+      {GOOGLE_AUTH_ENABLED && <><GoogleButton next={nextFromUrl} /><OrSeparator /></>}
+      <Field id="f-id" label={PHONE_AUTH_ENABLED ? "E-mail ou téléphone" : "E-mail"} error={error && !password ? error : undefined}>
         {({ id, describedBy, invalid }) => (
           <Input id={id} autoComplete="username" value={identifier} onChange={(e) => setIdentifier(e.target.value)}
-            placeholder="vous@studio.cd ou 81 234 5678" aria-describedby={describedBy} aria-invalid={invalid || undefined} />
+            placeholder={PHONE_AUTH_ENABLED ? "vous@studio.cd ou 81 234 5678" : "vous@studio.cd"} aria-describedby={describedBy} aria-invalid={invalid || undefined} />
         )}
       </Field>
       <Field id="f-pw" label="Mot de passe">
@@ -89,9 +89,9 @@ export function LoginForm() {
       <div className="-mt-2 flex justify-end">
         <button type="button" className="text-sm font-semibold text-gold-ink underline-offset-4 hover:underline"
           onClick={async () => {
-            if (!identifier.trim()) { setError("Saisissez d’abord votre e-mail ou votre téléphone."); return; }
+            if (!identifier.trim()) { setError(PHONE_AUTH_ENABLED ? "Saisissez d’abord votre e-mail ou votre téléphone." : "Saisissez d’abord votre e-mail."); return; }
             const r = await requestPasswordReset(normalizeIdentifier(identifier));
-            if (r.ok) toast.success("Instructions envoyées", { description: "Consultez vos e-mails ou vos SMS." });
+            if (r.ok) toast.success("Instructions envoyées", { description: PHONE_AUTH_ENABLED ? "Consultez vos e-mails ou vos SMS." : "Consultez vos e-mails." });
             else toast.error(r.error);
           }}>
           Mot de passe oublié ?
