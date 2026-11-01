@@ -3,9 +3,9 @@ import { Logo, ThemeToggle } from "@/components/brand";
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      {/* Panneau de marque (desktop) : un dégradé, le logo, une phrase */}
-      <aside className="hidden p-3 lg:sticky lg:top-0 lg:block lg:h-dvh">
-        <div className="flex h-full flex-col justify-between overflow-hidden rounded-[28px] bg-[linear-gradient(160deg,#141215_0%,#2A1812_48%,#8B4026_80%,#C4975A_100%)] p-10 text-[#F5F0E8]">
+      {/* Panneau de marque (desktop) : un dégradé qui se fond dans la page, le logo, une phrase */}
+      <aside className="hidden lg:sticky lg:top-0 lg:block lg:h-dvh">
+        <div className="flex h-full flex-col justify-between bg-[linear-gradient(90deg,#8B4026_0%,#4A2418_62%,transparent_100%)] p-10 pr-28 text-[#F5F0E8]">
           <Logo variant="full" size="lg" on="dark" />
           <div>
             <p className="auth-rise max-w-md font-display text-[clamp(2.6rem,4vw,3.6rem)] leading-[1.02]" style={{ "--rise": "120ms" } as React.CSSProperties}>
