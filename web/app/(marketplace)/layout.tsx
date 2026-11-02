@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { Assistant } from "@/components/mk/assistant";
 import { MkFooter } from "@/components/mk/footer";
 import { RouteProgress, ScrollReveal } from "@/components/mk/motion";
 import { MkNav } from "@/components/mk/nav";
 import { WhatsAppFab } from "@/components/mk/whatsapp-fab";
+import { DEMO } from "@/lib/config";
 import { getSiteTexts } from "@/lib/public/content";
 import "./marketplace.css";
 import "./marketplace-extra.css";
+import "./assistant.css";
 
 const SHARE_TITLE = "NDOA Wedding — Trouvez les prestataires de votre mariage en RDC";
 const SHARE_TEXT = "Photographes, salles, traiteurs, DJ, décorateurs… Comparez les talents et demandez vos devis gratuitement, sans créer de compte.";
@@ -24,13 +27,16 @@ export const metadata: Metadata = {
 /** Partie publique (les couples) : design du site d'origine, toujours sombre */
 export default async function MarketplaceLayout({ children }: LayoutProps<"/">) {
   const texts = await getSiteTexts();
+  // Sans clé configurée, le bouton WhatsApp reste en place
+  const assistant = DEMO || !!process.env.ANTHROPIC_API_KEY;
   return (
     <div className="mk">
       <Suspense fallback={null}>
         <RouteProgress />
         <ScrollReveal />
-        <WhatsAppFab number={texts.contactWhatsapp} />
+        {!assistant && <WhatsAppFab number={texts.contactWhatsapp} />}
       </Suspense>
+      {assistant && <Assistant />}
       <MkNav />
       <main id="contenu">{children}</main>
       <MkFooter />

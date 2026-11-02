@@ -27,6 +27,8 @@ function ConfidentialiteDefault() {
       </ul>
       <h2>Connexion avec Google</h2>
       <p>Si vous choisissez de vous connecter avec Google, nous recevons votre nom, votre adresse e-mail et votre photo de profil. Ces données servent uniquement à créer votre compte, à vous identifier et à sécuriser l’accès. Elles ne sont ni vendues, ni utilisées à des fins publicitaires. Vous pouvez retirer cet accès à tout moment depuis les paramètres de votre compte Google.</p>
+      <h2>Assistant du site</h2>
+      <p>L’assistant est une intelligence artificielle fournie par Anthropic. Les messages que vous lui écrivez sont transmis à Anthropic pour produire ses réponses ; NDOA Wedding ne les enregistre pas. N’y indiquez pas de données sensibles. Si vous choisissez de continuer avec un conseiller, un résumé de votre demande pré-remplit votre message WhatsApp : rien n’est envoyé sans votre action.</p>
       <h2>Finalités</h2>
       <p>Mettre en relation couples et prestataires, permettre aux prestataires de gérer leur activité, assurer la sécurité de la plateforme et produire des statistiques agrégées.</p>
       <h2>Partage</h2>
