@@ -73,8 +73,8 @@
   --color-overlay: var(--overlay);
   --color-bordeaux: #8b4026;
   --color-ivory: #f5f0e8;
-  --font-serif: var(--font-bodoni), "Didot", "Times New Roman", serif;
-  --font-sans: var(--font-manrope), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-instrument), system-ui, -apple-system, "Segoe UI", sans-serif;
   --radius-xl: 1.25rem;
   --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
 }

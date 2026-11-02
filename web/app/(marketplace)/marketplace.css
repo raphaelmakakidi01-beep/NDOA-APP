@@ -2,7 +2,7 @@
    Marketplace publique : feuille de style du site statique d'origine
    (assets/ndoa.css + styles des pages profil, CGU, à propos, contact),
    GÉNÉRÉE et limitée à .mk pour ne pas toucher l'espace pro.
-   Polices : celles de next/font (variables --font-bodoni, --font-manrope).
+   Polices : celles de next/font (variables --font-newsreader, --font-instrument).
    ========================================================= */
 /* ---- ndoa.css ---- */
 .mk{--ink:#0A0A0B; --coal:#17171A; --coal-2:#1F1F23; --ivory:#F5F0E8; --ivory-2:#EAE2D5;
@@ -10,8 +10,8 @@
   --rose:#E8A2B4; --wine:#8B4026; --brown:#8B4026;
   --text:#F5F0E8; --muted:#A8A299; --line:rgba(245,240,232,.12);
   --ink-text:#17171A; --ink-muted:#5C564E; --ink-line:rgba(23,23,26,.14);
-  --serif:var(--font-bodoni), "Didot", "Times New Roman", serif;
-  --sans:var(--font-manrope), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif:var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --sans:var(--font-instrument), system-ui, -apple-system, "Segoe UI", sans-serif;
   --gutter:clamp(16px, 4vw, 48px);
   --max:1440px;
   --radius:22px;

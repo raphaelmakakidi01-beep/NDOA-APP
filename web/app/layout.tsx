@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Bodoni_Moda, Manrope } from "next/font/google";
+import { Instrument_Sans, Newsreader } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 import { SITE_URL } from "@/lib/config";
 
-const bodoni = Bodoni_Moda({ variable: "--font-bodoni", subsets: ["latin"], style: ["normal", "italic"], display: "swap" });
-const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin"], display: "swap" });
+const newsreader = Newsreader({ variable: "--font-newsreader", subsets: ["latin"], style: ["normal", "italic"], axes: ["opsz"], display: "swap" });
+const instrument = Instrument_Sans({ variable: "--font-instrument", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -29,7 +29,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" suppressHydrationWarning className={`${bodoni.variable} ${manrope.variable} h-full antialiased`}>
+    <html lang="fr" suppressHydrationWarning className={`${newsreader.variable} ${instrument.variable} h-full antialiased`}>
       <body className="min-h-full">
         <a href="#contenu" className="fixed left-4 top-[-60px] z-[100] rounded-full bg-gold px-4 py-2 font-bold text-on-gold transition-[top] focus:top-4">
           Aller au contenu
