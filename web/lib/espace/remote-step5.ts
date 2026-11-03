@@ -20,7 +20,7 @@ export async function loadStep5(sb: SupabaseClient, vendorId: string, userId: st
     sb.from("review_requests").select("*, inquiries(couple_names)").eq("vendor_id", vendorId).order("created_at", { ascending: false }).limit(50),
     sb.from("subscriptions").select("*").eq("vendor_id", vendorId).maybeSingle(),
     sb.from("invoices").select("*").eq("vendor_id", vendorId).order("created_at", { ascending: false }).limit(36),
-    sb.from("vendor_members").select("*, profiles(full_name)").eq("vendor_id", vendorId).neq("status", "revoked"),
+    sb.from("vendor_members").select("*, profiles!vendor_members_user_id_fkey(full_name)").eq("vendor_id", vendorId).neq("status", "revoked"),
     sb.from("notification_prefs").select("*").eq("user_id", userId),
     sb.from("profiles").select("locale").eq("id", userId).maybeSingle(),
     sb.rpc("top_photos", { p_vendor: vendorId, p_since: since }),

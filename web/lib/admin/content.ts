@@ -129,7 +129,7 @@ export async function listPendingReviews(): Promise<PendingReview[]> {
 export async function listHiddenMedia(): Promise<HiddenMedia[]> {
   if (DEMO) { await wait(); return structuredClone(dm.hidden); }
   const c = sb();
-  const r = await c.from("media").select(`id, kind, storage_path, poster_path, hidden_reason, moderated_at, vendor:vendors(${VENDOR_REF})`)
+  const r = await c.from("media").select(`id, kind, storage_path, poster_path, hidden_reason, moderated_at, vendor:vendors!media_vendor_id_fkey(${VENDOR_REF})`)
     .eq("is_hidden", true).order("moderated_at", { ascending: false }).limit(200);
   check(r);
   return ((r.data ?? []) as Row[]).map((x) => ({ id: String(x.id), kind: x.kind as "photo", url: media(c, (x.kind === "video" ? x.poster_path ?? x.storage_path : x.storage_path) as string) ?? "", vendor: vendorRef(c, one(x.vendor as Row)), reason: (x.hidden_reason as string) ?? undefined, moderatedAt: (x.moderated_at as string) ?? undefined }));
