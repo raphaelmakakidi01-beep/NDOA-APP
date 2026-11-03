@@ -7,7 +7,7 @@ import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
 import { DEMO, SUPABASE_ANON_KEY, SUPABASE_MISSING, SUPABASE_URL } from "@/lib/config";
-import { CATEGORIES, U } from "@/lib/onboarding/catalog";
+import { CATEGORIES, categoryImage } from "@/lib/onboarding/catalog";
 import { DEMO_CARDS, DEMO_HOME, DEMO_INSPIRATION, demoProfile } from "./demo";
 import type { Card, Category, DirectoryQuery, Home, InspirationItem, Profile, Testimonial } from "./types";
 
@@ -126,7 +126,7 @@ export async function getHome(): Promise<Home> {
   const categories: Category[] = ((h.categories as Row[] | null) ?? []).map((x) => {
     const known = CATEGORIES.find((k) => k.slug === x.slug);
     return { slug: s(x.slug), name: s(x.name), plural: s(x.name_plural) || s(x.name), count: n(x.vendor_count),
-      image: file(x.image_path, "site-media") || (known ? U(known.img, 900) : FALLBACK_IMAGE) };
+      image: file(x.image_path, "site-media") || (known ? categoryImage(known.slug, known.img) : FALLBACK_IMAGE) };
   });
   const slides = ((h.slides as Row[] | null) ?? []).map((x) => {
     const image = x.image_path ? file(x.image_path, "site-media") : file(x.media_kind === "video" ? x.poster_path : x.media_path);
@@ -150,7 +150,7 @@ export async function getHome(): Promise<Home> {
     slides: slides.length ? slides : ranked.slice(0, 5).filter((v) => v.cover !== FALLBACK_IMAGE).map((v) => ({ image: v.cover, title: "", subtitle: "", video: false, vendor: v })),
     feature: feature ?? picks[0] ?? ranked[0] ?? null,
     picks: (picks.length ? picks : ranked.slice(1, 5)).filter((v) => v.slug !== (feature ?? picks[0] ?? ranked[0])?.slug).slice(0, 4),
-    stories, categories: categories.length ? categories : CATEGORIES.map((k) => ({ slug: k.slug, name: k.name, plural: k.name, count: vendors.filter((v) => v.cat === k.slug).length, image: U(k.img, 900) })),
+    stories, categories: categories.length ? categories : CATEGORIES.map((k) => ({ slug: k.slug, name: k.name, plural: k.name, count: vendors.filter((v) => v.cat === k.slug).length, image: categoryImage(k.slug, k.img) })),
     cities: ((h.cities as Row[] | null) ?? []).map((x) => s(x.name)), vendors, testimonials,
   };
 }

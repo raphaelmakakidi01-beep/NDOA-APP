@@ -2,7 +2,7 @@
  * Données de démonstration de la marketplace : UNIQUEMENT en développement local (mode démo, voir lib/config).
  * Reprises du site statique d'origine (index.html, prestataire.html). En production, tout vient de Supabase.
  */
-import { CATEGORIES, U } from "@/lib/onboarding/catalog";
+import { CATEGORIES, categoryImage, U } from "@/lib/onboarding/catalog";
 import type { Card, Category, Home, InspirationItem, Profile, Testimonial } from "./types";
 
 const P = {
@@ -47,7 +47,7 @@ export const DEMO_CARDS: Card[] = RAW.map(([slug, name, cat, city, rating, revie
 const bySlug = (s: string) => DEMO_CARDS.find((c) => c.slug === s)!;
 
 const DEMO_CATEGORIES: Category[] = CATEGORIES.map((c) => ({
-  slug: c.slug, name: c.name, plural: c.name.endsWith("s") || c.slug === "dj" ? c.name : `${c.name}s`, image: U(c.img, 900),
+  slug: c.slug, name: c.name, plural: c.name.endsWith("s") || c.slug === "dj" ? c.name : `${c.name}s`, image: categoryImage(c.slug, c.img),
   count: DEMO_CARDS.filter((v) => v.cat === c.slug).length,
 }));
 

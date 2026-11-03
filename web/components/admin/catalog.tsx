@@ -13,10 +13,14 @@ import { deleteCategory, deleteCity, listCategories, listCities, reorder, saveCa
 import { CATEGORY_ICONS, type AdminCategory, type AdminCity } from "@/lib/admin/content-types";
 import { revalidatePublic } from "@/lib/admin/manage";
 import { checkPhoto } from "@/lib/media";
+import { CATEGORIES, categoryImage } from "@/lib/onboarding/catalog";
 import { cn, slugify } from "@/lib/utils";
 import { DragHandle, SortableList } from "./sortable";
 import { dateInputClass } from "./pickers";
 import { ConfirmDialog, PageHeader, Panel } from "./ui";
+
+/** Photo affichée sur le site quand aucune image n'a été envoyée pour la catégorie */
+const defaultImage = (slug: string) => { const k = CATEGORIES.find((x) => x.slug === slug); return k ? categoryImage(k.slug, k.img) : undefined; };
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   camera: Camera, video: Video, plane: Plane, drone: Plane, building: Building2, sparkles: Sparkles, flower: Flower2, utensils: UtensilsCrossed,
@@ -64,7 +68,7 @@ export function Catalog() {
                   <DragHandle handle={handle} />
                   <span className="relative grid size-11 shrink-0 place-items-center overflow-hidden rounded-lg bg-surface-2 text-gold-ink">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {c.imageUrl ? <img src={c.imageUrl} alt="" className="size-full object-cover" loading="lazy" /> : <CategoryIcon name={c.icon} className="size-5" />}
+                    {c.imageUrl || defaultImage(c.slug) ? <img src={c.imageUrl ?? defaultImage(c.slug)} alt="" className="size-full object-cover" loading="lazy" /> : <CategoryIcon name={c.icon} className="size-5" />}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-1.5 truncate text-sm font-semibold"><CategoryIcon name={c.icon} className="size-3.5 shrink-0 text-gold-ink" />{c.name}</p>
@@ -175,7 +179,8 @@ function CategoryDialogOpen({ cat, taken, onClose, onSave }: { cat: AdminCategor
           <div className="flex items-center gap-3">
             <span className="relative grid aspect-[4/3] w-36 shrink-0 place-items-center overflow-hidden rounded-xl bg-surface-2 text-muted">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {d.imageUrl ? <img src={d.imageUrl} alt="" className="size-full object-cover" /> : <CategoryIcon name={d.icon} className="size-7" />}
+              {d.imageUrl || defaultImage(d.slug) ? <img src={d.imageUrl ?? defaultImage(d.slug)} alt="" className="size-full object-cover" /> : <CategoryIcon name={d.icon} className="size-7" />}
+              {!d.imageUrl && defaultImage(d.slug) && <span className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1 text-[11px] font-semibold text-white">Photo par défaut</span>}
             </span>
             <div className="grid gap-2">
               <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" className="sr-only" tabIndex={-1}

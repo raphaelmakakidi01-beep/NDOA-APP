@@ -3,6 +3,10 @@
 export const U = (id: string, w = 900, h?: number) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}${h ? `&h=${h}` : ""}&q=72`;
 
+/** Photos propres à NDOA pour les tuiles de catégories de l’accueil, à la place des photos de banque d’images */
+const CATEGORY_PHOTOS: Partial<Record<string, string>> = { photographe: "/brand/categories/photographe.webp" };
+export const categoryImage = (slug: string, img: string) => CATEGORY_PHOTOS[slug] ?? U(img, 900);
+
 export const CATEGORIES = [
   { slug: "photographe", name: "Photographe", hint: "Reportage, portraits, albums", img: "1465495976277-4387d4b0b4c6" },
   { slug: "videaste", name: "Vidéaste", hint: "Films, teasers, clips", img: "1516035069371-29a1b244cc32" },
