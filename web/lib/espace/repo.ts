@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabase } from "@/lib/supabase/client";
 import { uploadWithProgress } from "@/lib/media";
 import { toE164 } from "@/lib/validation";
-import type { Draft } from "@/lib/onboarding/types";
+import type { Draft, MediaRef } from "@/lib/onboarding/types";
 import { seedEspace, seedStats, seedStep4, seedStep5 } from "./demo";
 import type { Album, DayStat, EspaceData, MediaItem, Story } from "./types";
 import { loadStep4, mapInquiryExtras } from "./remote-step4";
@@ -118,6 +118,11 @@ export async function loadFromDb(userId: string, email?: string): Promise<{ draf
     duration: m.duration_s ? Number(m.duration_s) : undefined, albumId: (m.album_id as string) ?? undefined, featured: !!m.is_featured, alt: (m.alt as string) ?? "",
     status: m.status === "ready" ? "ready" : m.status === "failed" ? "error" : "processing", progress: 100, createdAt: s(m, "created_at"),
   }));
+  // La couverture et les photos alimentent l’aperçu en direct et la section Couverture de « Ma vitrine »
+  const toRef = (m: MediaItem): MediaRef => ({ id: m.id, url: m.url, source: "remote", name: m.name, size: m.size, width: m.width, height: m.height, status: m.status === "error" ? "error" : "ready", progress: 100 });
+  const coverItem = items.find((m) => m.id === v.cover_media_id);
+  if (coverItem) draft.cover = toRef(coverItem);
+  draft.photos = items.filter((m) => m.kind === "photo" && m.status !== "error").map(toRef);
   const plan = ((v.subscriptions as { plan_id: string }[] | { plan_id: string } | null) && (Array.isArray(v.subscriptions) ? v.subscriptions[0]?.plan_id : (v.subscriptions as { plan_id: string }).plan_id)) ?? "free";
   return {
     draft,

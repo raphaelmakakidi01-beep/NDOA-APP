@@ -115,7 +115,8 @@ export async function persistStep(userId: string, step: StepKey, d: Draft): Prom
         const blob = await get<Blob>(`eclat-media:${d.avatar.id}`);
         if (blob) {
           const path = `${vendorId}/avatar-${d.avatar.id}.webp`;
-          const up = await sb.storage.from("vendor-media").upload(path, blob, { contentType: "image/webp", upsert: true });
+          // Sans upsert : le remplacement exigerait un droit de lecture sur le stockage, que les prestataires n’ont pas
+          const up = await sb.storage.from("vendor-media").upload(path, blob, { contentType: "image/webp", upsert: false });
           if (!up.error) {
             await sb.from("vendors").update({ avatar_path: path }).eq("id", vendorId);
             await del(`eclat-media:${d.avatar.id}`);
