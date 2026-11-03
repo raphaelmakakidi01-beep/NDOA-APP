@@ -300,3 +300,11 @@
 .mk .dir-cover img { z-index: -2; object-fit: cover; object-position: center 30%; }
 .mk .dir-cover::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(10, 10, 11, .55) 0%, rgba(10, 10, 11, .25) 30%, rgba(10, 10, 11, .6) 65%, var(--ink) 100%), linear-gradient(90deg, rgba(10, 10, 11, .55), transparent 60%); }
 .mk .dir-cover p { margin: 0; color: rgba(245, 240, 232, .88); }
+/* Au défilement, la photo de couverture descend plus lentement que la page et s'agrandit légèrement (effet de profondeur) */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .mk .dir-cover img { animation: coverDrift linear both; animation-timeline: scroll(root); animation-range: 0 560px; }
+  }
+}
+@keyframes coverDrift { from { transform: translateY(0) scale(1.04); } to { transform: translateY(28%) scale(1.14); opacity: .55; } }
+.mk .dir-cover { overflow: clip; }
