@@ -295,9 +295,8 @@
 /* Menu du téléphone : fond plein et texte qui tient sur une ligne */
 .mk .mmenu { background: var(--ink); }
 .mk .mmenu li a { display: block; padding: 7px 0; font-size: clamp(1.7rem, 8vw, 2.1rem); line-height: 1.15; }
-/* Annuaire filtré par catégorie : la photo de la catégorie en couverture derrière le titre */
-.mk .dir-cover { position: relative; isolation: isolate; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; min-height: clamp(240px, 30vw, 360px); margin: 0 calc(var(--gutter) * -1); padding: clamp(24px, 4vw, 48px) var(--gutter); overflow: hidden; }
+/* Annuaire filtré par catégorie : la photo couvre tout le haut de page, derrière la barre, puis se fond dans le fond */
+.mk .dir-cover { position: relative; isolation: isolate; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; min-height: clamp(380px, 52vh, 560px); margin: calc(-1 * (var(--nav-h) + clamp(28px, 5vw, 64px))) calc(50% - 50vw) 0; padding: calc(var(--nav-h) + 24px) calc(50vw - 50%) clamp(28px, 4vw, 48px); }
 .mk .dir-cover img { z-index: -2; object-fit: cover; object-position: center 30%; }
-.mk .dir-cover::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, rgba(10, 10, 11, .95) 0%, rgba(10, 10, 11, .55) 45%, rgba(10, 10, 11, .25) 100%); }
-.mk .dir-cover p { margin: 0; color: rgba(245, 240, 232, .85); }
-@media (min-width: 700px) { .mk .dir-cover { margin: 0; padding-inline: clamp(24px, 4vw, 48px); border-radius: 24px; } }
+.mk .dir-cover::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(10, 10, 11, .55) 0%, rgba(10, 10, 11, .25) 30%, rgba(10, 10, 11, .6) 65%, var(--ink) 100%), linear-gradient(90deg, rgba(10, 10, 11, .55), transparent 60%); }
+.mk .dir-cover p { margin: 0; color: rgba(245, 240, 232, .88); }
