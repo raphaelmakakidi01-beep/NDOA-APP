@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { DropdownMenu, Popover } from "radix-ui";
-import { Bell, ChevronsLeft, ChevronsRight, ExternalLink, LogOut, MoreHorizontal, Settings, Sparkles } from "lucide-react";
+import { Bell, ChevronsLeft, ChevronsRight, LogOut, MoreHorizontal, Settings, Sparkles } from "lucide-react";
 import { Logo, ThemeToggle } from "@/components/brand";
 import { Dialog } from "@/components/ui/dialog";
 import { EmptyState, timeAgo } from "@/components/ui/bits";
@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import { MOBILE_TABS, NAV } from "./nav";
 import { ReviewBanner } from "./review-banner";
+import { ShareMenu } from "./share-menu";
 
 /* Préférence « sidebar repliée » partagée entre onglets, sans écart d’hydratation */
 const listeners = new Set<() => void>();
@@ -194,9 +195,7 @@ function Topbar() {
       <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-3 px-4 sm:px-6 lg:px-10">
         <Logo href="/espace" className="lg:hidden" />
         <div className="ml-auto flex items-center gap-2">
-          <Link href="/espace/vitrine?apercu=1" className="hidden h-10 items-center gap-2 rounded-full border border-line px-4 text-sm font-semibold text-muted hover:border-gold hover:text-text sm:inline-flex">
-            <ExternalLink className="size-4" aria-hidden />Voir ma page
-          </Link>
+          <ShareMenu />
           <ThemeToggle />
           <Notifications />
           <UserMenu />
