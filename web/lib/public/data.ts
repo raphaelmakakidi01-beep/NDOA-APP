@@ -142,14 +142,13 @@ export async function getHome(): Promise<Home> {
     names: s(r.author_names), city: s(r.city), date: monthYear(s(r.wedding_date) || s(r.created_at)), rating: n(r.rating), text: s(r.body),
     vendor: { slug: s(one(r.vendors)!.slug), name: s(one(r.vendors)!.name) },
   }));
-  // Sans sélection dans l'admin : les vitrines recommandées puis les mieux notées (toujours de vraies vitrines)
-  const ranked = [...vendors].sort((a, b) => Number(b.recommended) - Number(a.recommended) || b.rating - a.rating);
+  // Mise en avant : uniquement ce que l’équipe a choisi dans l’admin, jamais de remplissage automatique
   const picks = ((h.recommandations as Row[] | null) ?? []).map(toCard);
   const feature = h.a_la_une ? toCard(h.a_la_une as Row) : null;
   return {
-    slides: slides.length ? slides : ranked.slice(0, 5).filter((v) => v.cover !== FALLBACK_IMAGE).map((v) => ({ image: v.cover, title: "", subtitle: "", video: false, vendor: v })),
-    feature: feature ?? picks[0] ?? ranked[0] ?? null,
-    picks: (picks.length ? picks : ranked.slice(1, 5)).filter((v) => v.slug !== (feature ?? picks[0] ?? ranked[0])?.slug).slice(0, 4),
+    slides,
+    feature: feature ?? picks[0] ?? null,
+    picks: picks.filter((v) => v.slug !== (feature ?? picks[0])?.slug).slice(0, 4),
     stories, categories: categories.length ? categories : CATEGORIES.map((k) => ({ slug: k.slug, name: k.name, plural: k.name, count: vendors.filter((v) => v.cat === k.slug).length, image: categoryImage(k.slug, k.img) })),
     cities: ((h.cities as Row[] | null) ?? []).map((x) => s(x.name)), vendors, testimonials,
   };

@@ -75,7 +75,7 @@ export default async function Accueil() {
       </section>
 
       {/* Aucune vitrine publiée : une seule section utile, et les liens #recommandations et #feed y mènent */}
-      {!feat && (
+      {!feat && !h.vendors.length && (
         <section className="section light home-soon" id="recommandations" aria-labelledby="soon-title">
           <span id="feed" />
           <div className="container">
@@ -140,6 +140,8 @@ export default async function Accueil() {
       )}
 
       {h.vendors.length > 0 && <section className="section" id="feed" aria-labelledby="feed-title">
+        {/* Sans sélection de l’équipe, le lien « Recommandations » du menu mène ici */}
+        {!feat && <span id="recommandations" />}
         <div className="container">
           <div className="section-head">
             <div>
