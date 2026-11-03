@@ -13,6 +13,13 @@ import { getSiteTexts } from "@/lib/public/content";
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const SIZES = ["big", "tall", "", "", "wide", "", "", "tall", "wide", "wide", ""];
+// Largeur d’image à demander selon la forme de la tuile : la photo couvre la tuile, une tuile haute la recadre donc plus large
+const TILE_SIZES: Record<string, string> = {
+  big: "(max-width: 700px) 100vw, 60vw",
+  tall: "(max-width: 700px) 50vw, 60vw",
+  wide: "50vw",
+  "": "(max-width: 700px) 50vw, 25vw",
+};
 const nameEm = (name: string) => {
   const w = name.split(" ");
   return w.length > 1 ? <>{w.slice(0, -1).join(" ")} <em>{w[w.length - 1]}</em></> : <em>{name}</em>;
@@ -56,7 +63,7 @@ export default async function Accueil() {
           <div className="bento">
             {h.categories.map((c, i) => (
               <Link key={c.slug} className={`cat ph ${SIZES[i % SIZES.length]}`} href={`/prestataires?categorie=${encodeURIComponent(c.slug)}`} data-cursor="Explorer">
-                <Image src={c.image} alt="" fill sizes={SIZES[i % SIZES.length] === "big" ? "(max-width: 700px) 100vw, 50vw" : "(max-width: 700px) 50vw, 25vw"} />
+                <Image src={c.image} alt="" fill sizes={TILE_SIZES[SIZES[i % SIZES.length]]} />
                 <span className="cat-num">{String(i + 1).padStart(2, "0")}</span>
                 <span className="cat-go glass"><Arrow /></span>
                 <h3 className="cat-name">{c.plural}</h3>

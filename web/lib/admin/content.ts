@@ -213,7 +213,7 @@ export async function vendorMedia(vendorId: string): Promise<MediaOption[]> {
 
 /** Visuel dédié (bandeau d'accueil, image de catégorie) : compressé en WebP puis envoyé dans site-media */
 export async function uploadSiteImage(file: File, folder: "hero" | "categories"): Promise<{ path: string; url: string }> {
-  const { blob } = await compressPhoto(file, folder === "hero" ? 2400 : 1200);
+  const { blob } = await compressPhoto(file, folder === "hero" ? 2400 : 1800);
   if (DEMO) { await wait(); return { path: `${folder}/${uid()}.webp`, url: URL.createObjectURL(blob) }; }
   const c = sb();
   const path = `${folder}/${uid()}.webp`;
