@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { directoryUrl, fmt } from "@/components/mk/format";
@@ -6,7 +7,7 @@ import { Search } from "@/components/mk/icons";
 import { Select } from "@/components/mk/select";
 import { VendorCard } from "@/components/mk/vendor-card";
 import { BUDGETS, getHome, searchDirectory, SORTS } from "@/lib/public/data";
-import type { DirectoryQuery } from "@/lib/public/types";
+import type { Category, DirectoryQuery } from "@/lib/public/types";
 
 export const metadata: Metadata = {
   title: "Tous les prestataires de mariage",
@@ -42,6 +43,7 @@ async function Results({ searchParams }: { searchParams: PageProps<"/prestataire
 
   return (
     <>
+      <DirTitle cat={cat} />
       <form className="dir-filters" action="/prestataires" method="get" role="search" aria-label="Filtrer les prestataires">
         <label className="q">Recherche<input name="q" type="search" defaultValue={q.q} placeholder="Nom, style, quartier…" /></label>
         {/* Téléphone : les filtres sont repliés pour laisser les résultats dans le premier écran */}
@@ -98,13 +100,30 @@ async function Results({ searchParams }: { searchParams: PageProps<"/prestataire
   );
 }
 
+/** En-tête de l'annuaire : avec une catégorie choisie, sa photo passe en couverture derrière le titre */
+function DirTitle({ cat }: { cat?: Category }) {
+  if (!cat) {
+    return (
+      <>
+        <h1 className="display" id="dir-title">Tous les <em className="gold-text">prestataires</em></h1>
+        <p>Comparez les vitrines, les tarifs et les avis, puis demandez vos devis gratuitement, sans créer de compte.</p>
+      </>
+    );
+  }
+  return (
+    <header className="dir-cover">
+      <Image src={cat.image} alt="" fill priority sizes="(max-width: 1360px) 100vw, 1360px" />
+      <h1 className="display" id="dir-title">{cat.plural}</h1>
+      <p>Comparez les {cat.plural.toLowerCase()}, leurs tarifs et leurs avis, puis demandez vos devis gratuitement, sans créer de compte.</p>
+    </header>
+  );
+}
+
 export default function Annuaire({ searchParams }: PageProps<"/prestataires">) {
   return (
     <section className="section" aria-labelledby="dir-title" style={{ paddingTop: 0 }}>
       <div className="container dir-head">
-        <h1 className="display" id="dir-title">Tous les <em className="gold-text">prestataires</em></h1>
-        <p>Comparez les vitrines, les tarifs et les avis, puis demandez vos devis gratuitement, sans créer de compte.</p>
-        <Suspense fallback={<div className="dir-filters" aria-busy="true" style={{ minHeight: 160 }} />}>
+        <Suspense fallback={<><DirTitle /><div className="dir-filters" aria-busy="true" style={{ minHeight: 160 }} /></>}>
           <Results searchParams={searchParams} />
         </Suspense>
       </div>
