@@ -144,7 +144,7 @@ export async function exportVendors(f: VendorFilters) {
 const DETAIL_COLUMNS = `${LIST_COLUMNS}, tagline, bio, phone, whatsapp, email, zones, languages, socials, cover_media_id, owner_id,
   rejection_reason, suspended_reason, approved_at, reviewed_at,
   vendor_categories(is_primary, categories(slug, name)), subscriptions(plan_id),
-  media(id, kind, storage_path, poster_path, status, is_hidden, hidden_reason, sort),
+  media!media_vendor_id_fkey(id, kind, storage_path, poster_path, status, is_hidden, hidden_reason, sort),
   packages(id, name, price_mode, price_amount, currency, is_visible, duration_label, includes, sort)`;
 
 function detailFrom(sb: SupabaseClient, v: Row): AdminVendorDetail {
