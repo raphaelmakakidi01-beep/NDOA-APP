@@ -317,7 +317,6 @@
 .mk .partners[data-count="3"] > li { scroll-snap-align: start; }
 .mk .partner { display: grid; gap: 12px; height: 100%; color: inherit; text-decoration: none; }
 .mk .partner-media { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 14px; background: var(--coal-2); }
-.mk .partners[data-count="1"] .partner-media { aspect-ratio: 21 / 9; }
 .mk .partner-media img { object-fit: cover; transition: transform 1s var(--ease); }
 .mk a.partner:hover .partner-media img { transform: scale(1.04); }
 .mk .partner-tag { position: absolute; left: 12px; top: 12px; padding: 4px 10px; border-radius: 999px; background: rgba(10, 10, 11, .62); color: var(--ivory); font: 600 11px/1.4 var(--sans); letter-spacing: .08em; text-transform: uppercase; backdrop-filter: blur(8px); }
@@ -330,5 +329,4 @@
 @media (max-width: 700px) {
   .mk .partners[data-count="2"], .mk .partners[data-count="3"] { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 85%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
   .mk .partners[data-count="2"] > li { scroll-snap-align: start; }
-  .mk .partners[data-count="1"] .partner-media { aspect-ratio: 16 / 9; }
 }

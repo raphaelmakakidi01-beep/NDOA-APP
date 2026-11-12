@@ -169,7 +169,7 @@ export default async function Accueil() {
               const body = (
                 <>
                   <span className="partner-media">
-                    <Image src={p.image} alt={p.title ? `${p.partner} — ${p.title}` : p.partner} fill sizes="(max-width: 700px) 85vw, (max-width: 1100px) 50vw, 33vw" />
+                    <Image src={p.image} alt={p.title ? `${p.partner} — ${p.title}` : p.partner} fill sizes={h.partners.length === 1 ? "(max-width: 1100px) 100vw, 1080px" : "(max-width: 700px) 85vw, (max-width: 1100px) 50vw, 33vw"} />
                     <span className="partner-tag">Partenaire</span>
                   </span>
                   <span className="partner-text">
