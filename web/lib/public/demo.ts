@@ -67,6 +67,9 @@ export const DEMO_HOME: Home = {
   cities: ["Kinshasa", "Lubumbashi", "Goma", "Matadi"],
   vendors: DEMO_CARDS,
   testimonials: TESTIMONIALS,
+  partners: [
+    { id: "p1", partner: "Partenaire exemple", title: "-15 % pour les mariés NDOA sur la location de salle", image: U(P.venue, 1600), link: "https://example.com" },
+  ],
 };
 
 export function demoProfile(slug: string): Profile | null {

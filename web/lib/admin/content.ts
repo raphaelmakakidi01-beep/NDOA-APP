@@ -13,7 +13,7 @@ import { uid } from "@/lib/utils";
 import { adminError } from "./api";
 import { demo, demoLog } from "./demo";
 import type {
-  AdminCategory, AdminCity, FeaturedStory, HiddenMedia, HomePick, MediaOption, PendingReview, ReportGroup, ReportTarget, Slide, StoryOption, VendorRef,
+  AdminCategory, AdminCity, FeaturedStory, HiddenMedia, HomePick, MediaOption, PartnerAd, PendingReview, ReportGroup, ReportTarget, Slide, StoryOption, VendorRef,
 } from "./content-types";
 
 type Row = Record<string, unknown>;
@@ -63,6 +63,9 @@ const dm = {
     { id: "s2", vendor: dRef(3), imageUrl: U("1519225421980-715cb0215aed", 1400), title: "Le Fleuve d’Or", subtitle: "La salle de réception au bord du fleuve", startsAt: ago(-72), isActive: true, sort: 2 },
     { id: "s3", vendor: dRef(6), mediaId: "m-6-1", imageUrl: demo.vendors[6].media[1].url, mediaKind: "photo" as const, title: "Saveurs de Mama Tshala", subtitle: "Traiteur à Lubumbashi", endsAt: ago(48), isActive: true, sort: 3 },
   ] as Slide[],
+  ads: [
+    { id: "ad1", partner: "Partenaire exemple", title: "-15 % pour les mariés NDOA", imagePath: "partenaires/demo-1.webp", imageUrl: U("1511795409834-ef04bbd61622", 1400), linkUrl: "https://example.com", isActive: true, sort: 1 },
+  ] as PartnerAd[],
   picks: [
     { id: "p0", section: "a_la_une" as const, vendor: dRef(8), sort: 0 },
     ...[0, 1, 2, 3].map((i) => ({ id: `p${i + 1}`, section: "recommandations" as const, vendor: dRef(i), sort: i + 1 })),
@@ -212,8 +215,8 @@ export async function vendorMedia(vendorId: string): Promise<MediaOption[]> {
 }
 
 /** Visuel dédié (bandeau d'accueil, image de catégorie) : compressé en WebP puis envoyé dans site-media */
-export async function uploadSiteImage(file: File, folder: "hero" | "categories"): Promise<{ path: string; url: string }> {
-  const { blob } = await compressPhoto(file, folder === "hero" ? 2400 : 1800);
+export async function uploadSiteImage(file: File, folder: "hero" | "categories" | "partenaires"): Promise<{ path: string; url: string }> {
+  const { blob } = await compressPhoto(file, folder === "categories" ? 1800 : 2400);
   if (DEMO) { await wait(); return { path: `${folder}/${uid()}.webp`, url: URL.createObjectURL(blob) }; }
   const c = sb();
   const path = `${folder}/${uid()}.webp`;
@@ -300,6 +303,62 @@ export async function setPeriod(kind: "home_picks" | "featured_stories", id: str
     return;
   }
   check(await sb().from(kind).update({ starts_at: startsAt || null, ends_at: endsAt || null }).eq(kind === "home_picks" ? "id" : "story_id", id));
+}
+
+/* ------------------------------------------------------------------ */
+/* Partenaires & publicités                                            */
+/* ------------------------------------------------------------------ */
+export async function listPartnerAds(): Promise<PartnerAd[]> {
+  if (DEMO) { await wait(); return structuredClone(dm.ads); }
+  const c = sb();
+  const r = await c.from("partner_ads").select("*").order("sort");
+  check(r);
+  return ((r.data ?? []) as Row[]).map((x) => ({
+    id: String(x.id), partner: String(x.partner), title: (x.title as string) ?? "", imagePath: String(x.image_path), imageUrl: pub(c, "site-media", x.image_path as string),
+    linkUrl: (x.link_url as string) ?? undefined, startsAt: (x.starts_at as string) ?? undefined, endsAt: (x.ends_at as string) ?? undefined, isActive: !!x.is_active, sort: Number(x.sort),
+  }));
+}
+export type PartnerAdInput = Omit<PartnerAd, "id" | "sort"> & { id?: string };
+/** Lien saisi sans « https:// » : complété ; vide : aucun lien */
+export function normalizeLink(raw: string): string | undefined {
+  const v = raw.trim();
+  if (!v) return undefined;
+  const url = /^https?:\/\//i.test(v) ? v : `https://${v}`;
+  try { const u = new URL(url); return /\./.test(u.hostname) ? u.toString() : undefined; } catch { return undefined; }
+}
+export async function savePartnerAd(a: PartnerAdInput) {
+  if (DEMO) {
+    await wait();
+    const existing = dm.ads.find((x) => x.id === a.id);
+    const next: PartnerAd = { ...a, id: a.id ?? uid(), sort: existing?.sort ?? dm.ads.length + 1 };
+    dm.ads = existing ? dm.ads.map((x) => (x.id === a.id ? next : x)) : [...dm.ads, next];
+    return;
+  }
+  const row = { partner: a.partner.trim(), title: a.title.trim() || null, image_path: a.imagePath, link_url: a.linkUrl || null,
+    starts_at: a.startsAt || null, ends_at: a.endsAt || null, is_active: a.isActive, updated_at: new Date().toISOString() };
+  const c = sb();
+  if (a.id) check(await c.from("partner_ads").update(row).eq("id", a.id));
+  else {
+    const { count } = await c.from("partner_ads").select("id", { count: "exact", head: true });
+    check(await c.from("partner_ads").insert({ ...row, sort: (count ?? 0) + 1 }));
+  }
+}
+export async function setPartnerAdActive(id: string, active: boolean) {
+  if (DEMO) { await wait(150); dm.ads = dm.ads.map((x) => (x.id === id ? { ...x, isActive: active } : x)); return; }
+  check(await sb().from("partner_ads").update({ is_active: active, updated_at: new Date().toISOString() }).eq("id", id));
+}
+export async function deletePartnerAd(ad: PartnerAd) {
+  if (DEMO) { await wait(); dm.ads = dm.ads.filter((x) => x.id !== ad.id); return; }
+  const c = sb();
+  check(await c.from("partner_ads").delete().eq("id", ad.id));
+  // le visuel n'est plus utilisé : retiré du stockage (sans bloquer si ça échoue)
+  if (!/^https?:/.test(ad.imagePath)) await c.storage.from("site-media").remove([ad.imagePath]).catch(() => {});
+}
+export async function reorderPartnerAds(ids: string[]) {
+  if (DEMO) { await wait(120); dm.ads = dm.ads.map((x) => ({ ...x, sort: ids.indexOf(x.id) + 1 || x.sort })).sort((a, b) => a.sort - b.sort); return; }
+  const c = sb();
+  const res = await Promise.all(ids.map((id, i) => c.from("partner_ads").update({ sort: i + 1 }).eq("id", id)));
+  res.forEach(check);
 }
 
 /** Nouvel ordre après glisser-déposer : un seul appel, journalisé */

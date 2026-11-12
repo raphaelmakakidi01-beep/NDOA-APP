@@ -15,6 +15,7 @@ import { PUBLIC_SITE_URL } from "@/lib/config";
 import { revalidatePublic } from "@/lib/admin/manage";
 import { checkPhoto } from "@/lib/media";
 import { cn } from "@/lib/utils";
+import { PartnerAdsPanel } from "./partner-ads";
 import { DragHandle, SortableList } from "./sortable";
 import { PeriodDialog, StoryPickerDialog, VendorAvatar, VendorPickerDialog, dateInputClass, fromLocalInput, toLocalInput } from "./pickers";
 import { ConfirmDialog, PageHeader, Panel, fmtDate } from "./ui";
@@ -97,6 +98,9 @@ export function Featured() {
             </SortableList>
           )}
         </Panel>
+
+        {/* Partenaires & publicités */}
+        <PartnerAdsPanel />
 
         <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
           {/* À la une */}

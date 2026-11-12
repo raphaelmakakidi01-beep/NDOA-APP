@@ -155,6 +155,40 @@ export default async function Accueil() {
         </div>
       </section>}
 
+      {h.partners.length > 0 && <section className="section partners-sec" id="partenaires" aria-labelledby="partners-title">
+        <div className="container">
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">Partenaires</p>
+              <h2 className="display h2" id="partners-title">Nos <em className="gold-text">partenaires</em></h2>
+            </div>
+            <p className="lead">Des offres choisies pour votre mariage, auprès d’entreprises qui accompagnent NDOA Wedding.</p>
+          </div>
+          <ul className="partners" data-count={Math.min(h.partners.length, 3)}>
+            {h.partners.map((p) => {
+              const body = (
+                <>
+                  <span className="partner-media">
+                    <Image src={p.image} alt={p.title ? `${p.partner} — ${p.title}` : p.partner} fill sizes="(max-width: 700px) 85vw, (max-width: 1100px) 50vw, 33vw" />
+                    <span className="partner-tag">Partenaire</span>
+                  </span>
+                  <span className="partner-text">
+                    <b>{p.partner}</b>
+                    {p.title && <span>{p.title}</span>}
+                  </span>
+                  {p.link && <span className="partner-go" aria-hidden>Découvrir <Arrow /></span>}
+                </>
+              );
+              return (
+                <li key={p.id}>
+                  {p.link ? <a className="partner" href={p.link} target="_blank" rel="sponsored noopener noreferrer">{body}</a> : <div className="partner">{body}</div>}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </section>}
+
       <section className="section light" id="comment-ca-marche" aria-labelledby="how-title">
         <div className="container">
           <div className="section-head">

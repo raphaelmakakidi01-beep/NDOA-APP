@@ -43,6 +43,11 @@ export type Slide = {
   id: string; vendor: VendorRef; mediaId?: string; imagePath?: string; imageUrl?: string; mediaKind?: "photo" | "video";
   title: string; subtitle: string; startsAt?: string; endsAt?: string; isActive: boolean; sort: number;
 };
+/** Partenaire / publicité affichée sur l'accueil */
+export type PartnerAd = {
+  id: string; partner: string; title: string; imagePath: string; imageUrl?: string; linkUrl?: string;
+  startsAt?: string; endsAt?: string; isActive: boolean; sort: number;
+};
 export type HomePick = { id: string; section: "recommandations" | "a_la_une"; vendor: VendorRef; startsAt?: string; endsAt?: string; sort: number };
 export type FeaturedStory = { storyId: string; title: string; coverUrl?: string; vendor: VendorRef; startsAt?: string; endsAt?: string; sort: number };
 export type StoryOption = { id: string; title: string; coverUrl?: string; vendor: VendorRef };
