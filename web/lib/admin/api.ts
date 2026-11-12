@@ -33,7 +33,14 @@ export function adminError(message: string) {
     UNAUTHENTICATED: "Session expirée : reconnectez-vous.",
   };
   const code = Object.keys(codes).find((k) => message.includes(k));
-  return code ? codes[code] : "L’action a échoué. Réessayez.";
+  if (code) return codes[code];
+  // Session perdue ou expirée : la requête part sans jeton valide (rôle anonyme)
+  if (/JWT expired|PGRST30[13]|permission denied for function|Auth session missing/i.test(message))
+    return "Session expirée : rechargez la page ou reconnectez-vous.";
+  if (/Failed to fetch|NetworkError|Load failed|fetch failed|timeout/i.test(message))
+    return "Connexion internet instable : vérifiez votre réseau puis réessayez.";
+  console.error("[admin]", message); // cause exacte visible dans la console du navigateur (F12)
+  return `L’action a échoué. Réessayez. (${message.slice(0, 120)})`;
 }
 
 function sbOrThrow(): SupabaseClient {
