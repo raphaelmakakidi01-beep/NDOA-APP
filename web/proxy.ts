@@ -55,6 +55,9 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
+// Seulement là où la session compte : les pages publiques (mises en cache) ne paient plus
+// un aller-retour vers Supabase à chaque affichage. Côté navigateur, le client Supabase
+// rafraîchit lui-même la session.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|avif)$).*)"],
+  matcher: ["/onboarding/:path*", "/espace/:path*", "/admin/:path*", "/api/:path*"],
 };

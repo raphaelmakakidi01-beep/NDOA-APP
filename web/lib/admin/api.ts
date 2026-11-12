@@ -58,11 +58,14 @@ export type StaffMe = { id: string; name: string; email?: string; role: "admin" 
 export async function getMe(): Promise<StaffMe | null> {
   if (DEMO) return { id: "demo-admin", name: "Admin démo", email: "admin@ndoa.cd", role: "admin" };
   const sb = sbOrThrow();
-  const { data } = await sb.auth.getUser();
-  if (!data.user) return null;
-  const { data: p } = await sb.from("profiles").select("full_name, role").eq("id", data.user.id).maybeSingle();
+  // Session lue localement (pas d'aller-retour réseau) : l'accès est déjà vérifié côté serveur
+  // par proxy.ts (rôle en base) et chaque donnée admin est protégée par RLS / les fonctions SQL.
+  const { data } = await sb.auth.getSession();
+  const user = data.session?.user;
+  if (!user) return null;
+  const { data: p } = await sb.from("profiles").select("full_name, role").eq("id", user.id).maybeSingle();
   if (!p || (p.role !== "admin" && p.role !== "moderateur")) return null;
-  return { id: data.user.id, name: (p.full_name as string) || data.user.email || "Équipe NDOA", email: data.user.email, role: p.role };
+  return { id: user.id, name: (p.full_name as string) || user.email || "Équipe NDOA", email: user.email, role: p.role };
 }
 
 /* ------------------------------------------------------------------ */
