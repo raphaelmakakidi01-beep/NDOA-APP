@@ -34,7 +34,7 @@ export async function invoicePdf(inv: Invoice, vendor: Draft): Promise<Blob> {
   right("FACTURE", W - M, 11, bold, goldInk);
   y -= 18; right(`N° ${inv.number}`, W - M, 11, bold);
   y -= 14; right(`Émise le ${d(inv.paidAt ?? inv.createdAt)}`, W - M, 9.5, sans, muted);
-  y -= 26; text("Les prestataires de mariage en RDC · Kinshasa · facturation@ndoa.cd", M, 9.5, sans, muted);
+  y -= 26; text("Les prestataires de mariage en RDC · Kinshasa · contactsocimab@gmail.com", M, 9.5, sans, muted);
 
   y -= 40;
   page.drawRectangle({ x: M, y: y - 52, width: W - 2 * M, height: 66, color: ivory });
@@ -59,7 +59,7 @@ export async function invoicePdf(inv: Invoice, vendor: Draft): Promise<Blob> {
   text("Moyen de paiement", W - M - 200, 10, sans, muted); right(PAYMENT_METHODS[inv.method].short, W - M, 10);
 
   y -= 60;
-  text("Merci pour votre confiance. Pour toute question sur cette facture : facturation@ndoa.cd", M, 8.5, sans, muted);
+  text("Merci pour votre confiance. Pour toute question sur cette facture : contactsocimab@gmail.com", M, 8.5, sans, muted);
   page.drawText(t(`Facture ${inv.number} · NDOA Wedding`), { x: M, y: 28, size: 8, font: sans, color: muted });
   return new Blob([(await doc.save()) as BlobPart], { type: "application/pdf" });
 }

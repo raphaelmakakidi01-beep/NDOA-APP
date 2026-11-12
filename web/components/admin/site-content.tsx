@@ -178,7 +178,7 @@ const TEXT_FIELDS: { key: string; title: string; hint: string; fields: { k: stri
   { key: "accueil.hero", title: "Accueil : titre principal", hint: "Vide = texte par défaut (« Les meilleurs prestataires pour votre mariage. »). Le dernier mot du titre s’affiche en doré.",
     fields: [{ k: "titre", label: "Titre", placeholder: "Les meilleurs prestataires pour votre mariage." }, { k: "sous_titre", label: "Sous-titre", placeholder: "Photographes, salles, traiteurs… Trouvez, comparez et réservez.", long: true }] },
   { key: "general.contact", title: "Coordonnées de contact", hint: "Affichées sur la page Contact. Vide = valeur de configuration du serveur, ou carte masquée.",
-    fields: [{ k: "email", label: "E-mail", placeholder: "bonjour@ndoa.cd" }, { k: "whatsapp", label: "WhatsApp (avec indicatif)", placeholder: "+243 81 000 0000" }] },
+    fields: [{ k: "email", label: "E-mail", placeholder: "contactsocimab@gmail.com" }, { k: "whatsapp", label: "WhatsApp (avec indicatif)", placeholder: "+243 81 000 0000" }] },
 ];
 
 function Texts({ settings, onSaved }: { settings: Setting[]; onSaved: () => void }) {

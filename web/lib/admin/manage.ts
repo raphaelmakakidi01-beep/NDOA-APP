@@ -360,7 +360,7 @@ const demoFaqs: Faq[] = [
 ];
 const demoSettings: Setting[] = [
   { key: "accueil.hero", value: { titre: "", sous_titre: "" }, isPublic: true },
-  { key: "general.contact", value: { email: "bonjour@ndoa.cd", whatsapp: "" }, isPublic: true },
+  { key: "general.contact", value: { email: "contactsocimab@gmail.com", whatsapp: "+243818123576" }, isPublic: true },
   { key: "moderation.validation_obligatoire", value: true, isPublic: false },
 ];
 
