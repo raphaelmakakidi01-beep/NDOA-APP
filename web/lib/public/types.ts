@@ -24,7 +24,7 @@ export type Category = { slug: string; name: string; plural: string; image: stri
 export type Slide = { image: string; title: string; subtitle: string; video: boolean; vendor: Card };
 export type Story = { id: string; title: string; ring: string; frames: { image: string; caption: string }[]; vendor: Card };
 /** Publicité d'un partenaire (bandeau « Nos partenaires » de l'accueil) */
-export type Partner = { id: string; partner: string; title: string; image: string; link: string };
+export type Partner = { id: string; partner: string; title: string; image: string; link: string; hero: boolean };
 export type Testimonial = { names: string; city: string; date: string; rating: number; text: string; vendor: { slug: string; name: string } };
 
 export type Home = {

@@ -67,7 +67,7 @@ export function PartnerAdsPanel() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{a.partner}</p>
                 <p className="truncate text-[12.5px] text-muted">{a.title || (a.linkUrl ? host(a.linkUrl) : "Sans lien")}</p>
-                <div className="mt-1"><AdStatus ad={a} /></div>
+                <div className="mt-1 flex flex-wrap gap-1.5"><AdStatus ad={a} />{a.showInHero && <StatusTag tone="gold">Aussi dans le bandeau</StatusTag>}</div>
               </div>
               <label className="hidden items-center gap-2 text-[12.5px] font-semibold sm:inline-flex">
                 <input type="checkbox" checked={a.isActive} className="size-4 accent-[var(--gold)]"
@@ -107,6 +107,7 @@ function AdDialogOpen({ ad, onClose, onSaved }: { ad: PartnerAd | null; onClose:
   const [starts, setStarts] = React.useState(toLocalInput(ad?.startsAt));
   const [ends, setEnds] = React.useState(toLocalInput(ad?.endsAt));
   const [active, setActive] = React.useState(ad?.isActive ?? true);
+  const [inHero, setInHero] = React.useState(ad?.showInHero ?? true);
   const [busy, setBusy] = React.useState<"" | "upload" | "save">("");
   const fileRef = React.useRef<HTMLInputElement>(null);
 
@@ -128,7 +129,7 @@ function AdDialogOpen({ ad, onClose, onSaved }: { ad: PartnerAd | null; onClose:
     if (!image.path) return;
     setBusy("save");
     try {
-      await savePartnerAd({ id: ad?.id, partner, title, imagePath: image.path, linkUrl, startsAt: fromLocalInput(starts), endsAt: fromLocalInput(ends), isActive: active });
+      await savePartnerAd({ id: ad?.id, partner, title, imagePath: image.path, linkUrl, showInHero: inHero, startsAt: fromLocalInput(starts), endsAt: fromLocalInput(ends), isActive: active });
       toast.success(ad ? "Publicité modifiée" : "Publicité ajoutée");
       onSaved();
     } catch (e) { toast.error((e as Error).message); }
@@ -183,6 +184,13 @@ function AdDialogOpen({ ad, onClose, onSaved }: { ad: PartnerAd | null; onClose:
         </div>
         {invalidDates && <p role="alert" className="-mt-3 text-[13px] font-medium text-danger">La fin doit être après le début.</p>}
         <p className="-mt-2 text-[12.5px] text-muted">Sans dates, la publicité reste en ligne tant qu’elle est active.</p>
+
+        <label className="flex items-start gap-2 text-sm font-semibold">
+          <input type="checkbox" checked={inHero} onChange={(e) => setInHero(e.target.checked)} className="mt-0.5 size-4 accent-[var(--gold)]" />
+          <span>Afficher aussi en fond du bandeau d’accueil
+            <span className="block text-[12.5px] font-normal text-muted">La publicité défile en plein écran avec les photos des prestataires. Idéal : image large (2400 px), sans texte important sur la gauche, où s’affiche le titre du site.</span>
+          </span>
+        </label>
 
         <label className="inline-flex items-center gap-2 text-sm font-semibold">
           <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="size-4 accent-[var(--gold)]" />Active

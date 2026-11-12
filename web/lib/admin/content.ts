@@ -64,7 +64,7 @@ const dm = {
     { id: "s3", vendor: dRef(6), mediaId: "m-6-1", imageUrl: demo.vendors[6].media[1].url, mediaKind: "photo" as const, title: "Saveurs de Mama Tshala", subtitle: "Traiteur à Lubumbashi", endsAt: ago(48), isActive: true, sort: 3 },
   ] as Slide[],
   ads: [
-    { id: "ad1", partner: "Partenaire exemple", title: "-15 % pour les mariés NDOA", imagePath: "partenaires/demo-1.webp", imageUrl: U("1511795409834-ef04bbd61622", 1400), linkUrl: "https://example.com", isActive: true, sort: 1 },
+    { id: "ad1", partner: "Partenaire exemple", title: "-15 % pour les mariés NDOA", imagePath: "partenaires/demo-1.webp", imageUrl: U("1511795409834-ef04bbd61622", 1400), linkUrl: "https://example.com", showInHero: true, isActive: true, sort: 1 },
   ] as PartnerAd[],
   picks: [
     { id: "p0", section: "a_la_une" as const, vendor: dRef(8), sort: 0 },
@@ -315,7 +315,7 @@ export async function listPartnerAds(): Promise<PartnerAd[]> {
   check(r);
   return ((r.data ?? []) as Row[]).map((x) => ({
     id: String(x.id), partner: String(x.partner), title: (x.title as string) ?? "", imagePath: String(x.image_path), imageUrl: pub(c, "site-media", x.image_path as string),
-    linkUrl: (x.link_url as string) ?? undefined, startsAt: (x.starts_at as string) ?? undefined, endsAt: (x.ends_at as string) ?? undefined, isActive: !!x.is_active, sort: Number(x.sort),
+    linkUrl: (x.link_url as string) ?? undefined, showInHero: x.show_in_hero !== false, startsAt: (x.starts_at as string) ?? undefined, endsAt: (x.ends_at as string) ?? undefined, isActive: !!x.is_active, sort: Number(x.sort),
   }));
 }
 export type PartnerAdInput = Omit<PartnerAd, "id" | "sort"> & { id?: string };
@@ -334,7 +334,7 @@ export async function savePartnerAd(a: PartnerAdInput) {
     dm.ads = existing ? dm.ads.map((x) => (x.id === a.id ? next : x)) : [...dm.ads, next];
     return;
   }
-  const row = { partner: a.partner.trim(), title: a.title.trim() || null, image_path: a.imagePath, link_url: a.linkUrl || null,
+  const row = { partner: a.partner.trim(), title: a.title.trim() || null, image_path: a.imagePath, link_url: a.linkUrl || null, show_in_hero: a.showInHero,
     starts_at: a.startsAt || null, ends_at: a.endsAt || null, is_active: a.isActive, updated_at: new Date().toISOString() };
   const c = sb();
   if (a.id) check(await c.from("partner_ads").update(row).eq("id", a.id));

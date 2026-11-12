@@ -45,7 +45,7 @@ export type Slide = {
 };
 /** Partenaire / publicité affichée sur l'accueil */
 export type PartnerAd = {
-  id: string; partner: string; title: string; imagePath: string; imageUrl?: string; linkUrl?: string;
+  id: string; partner: string; title: string; imagePath: string; imageUrl?: string; linkUrl?: string; showInHero: boolean;
   startsAt?: string; endsAt?: string; isActive: boolean; sort: number;
 };
 export type HomePick = { id: string; section: "recommandations" | "a_la_une"; vendor: VendorRef; startsAt?: string; endsAt?: string; sort: number };

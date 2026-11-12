@@ -30,7 +30,7 @@ export default async function Accueil() {
   const feat = h.feature;
   return (
     <>
-      <Hero slides={h.slides} categories={h.categories} cities={h.cities} texts={{ title: texts.heroTitle, subtitle: texts.heroSubtitle }} />
+      <Hero slides={h.slides} partners={h.partners.filter((p) => p.hero)} categories={h.categories} cities={h.cities} texts={{ title: texts.heroTitle, subtitle: texts.heroSubtitle }} />
 
       <div className="marquee" aria-hidden="true">
         <div className="marquee-track">

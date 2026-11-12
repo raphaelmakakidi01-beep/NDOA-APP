@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { Category, Slide } from "@/lib/public/types";
+import type { Category, Partner, Slide } from "@/lib/public/types";
 import { vendorUrl } from "./format";
 import { Search } from "./icons";
 import { Select } from "./select";
@@ -16,16 +16,37 @@ const subscribe = (cb: () => void) => {
   return () => { mq.removeEventListener("change", cb); document.removeEventListener("visibilitychange", cb); };
 };
 const stilled = () => matchMedia("(prefers-reduced-motion: reduce)").matches || document.hidden;
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=2200&q=72";
+
+/** Élément du diaporama : réalisation d'un prestataire, publicité d'un partenaire ou visuel par défaut */
+type Item =
+  | { kind: "vendor"; image: string; alt: string; slide: Slide }
+  | { kind: "partner"; image: string; alt: string; partner: Partner }
+  | { kind: "default"; image: string; alt: string };
+
+/** Les publicités s'intercalent après chaque groupe de deux réalisations ; sans réalisation, après le visuel par défaut */
+function buildItems(slides: Slide[], partners: Partner[]): Item[] {
+  const base: Item[] = slides.length
+    ? slides.map((x) => ({ kind: "vendor", image: x.image, alt: x.title || `Réalisation de ${x.vendor.name}`, slide: x }))
+    : [{ kind: "default", image: DEFAULT_IMAGE, alt: "" }];
+  const ads: Item[] = partners.map((p) => ({ kind: "partner", image: p.image, alt: p.title ? `${p.partner} — ${p.title}` : p.partner, partner: p }));
+  if (!slides.length) return [...base, ...ads];
+  const out: Item[] = [];
+  base.forEach((b, k) => { out.push(b); if ((k + 1) % 2 === 0 && ads.length) out.push(ads.shift()!); });
+  return [...out, ...ads];
+}
+
 const BUDGETS = [["0-500", "Moins de 500 USD"], ["500-1500", "500 – 1 500 USD"], ["1500-5000", "1 500 – 5 000 USD"], ["5000+", "Plus de 5 000 USD"]];
 
 /** Héros : réalisations des prestataires en diaporama (photo, prestataire, lien vers son profil) + recherche */
-export function Hero({ slides, categories, cities, texts }: { slides: Slide[]; categories: Category[]; cities: string[]; texts?: { title?: string; subtitle?: string } }) {
+export function Hero({ slides, partners = [], categories, cities, texts }: { slides: Slide[]; partners?: Partner[]; categories: Category[]; cities: string[]; texts?: { title?: string; subtitle?: string } }) {
+  const items = buildItems(slides, partners);
   const [i, setI] = useState(0);
   const [userPaused, setPaused] = useState(false);
   const still = useSyncExternalStore(subscribe, stilled, () => false);
   const paused = userPaused || still;
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const n = slides.length;
+  const n = items.length;
   const go = useCallback((k: number) => setI(((k % n) + n) % n), [n]);
 
   useEffect(() => {
@@ -34,27 +55,26 @@ export function Hero({ slides, categories, cities, texts }: { slides: Slide[]; c
     return () => { if (timer.current) clearTimeout(timer.current); };
   }, [i, paused, n, go]);
 
-  const s = slides[i];
+  const s = items[i];
   return (
     <section className={`hero${paused ? " is-paused" : ""}`} aria-roledescription="carrousel" aria-label="Réalisations de nos prestataires">
       <div className="hero-slides">
-        {n === 0 && <div className="hero-slide ph is-active"><Image src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=2200&q=72" alt="" fill sizes="100vw" priority /></div>}
-        {slides.map((x, k) => (
-          <div key={x.image + k} className={`hero-slide ph${k === i ? " is-active" : ""}`} aria-hidden={k !== i}>
-            <Image src={x.image} alt={x.title || `Réalisation de ${x.vendor.name}`} fill sizes="100vw" priority={k === 0} />
+        {items.map((x, k) => (
+          <div key={x.image + k} className={`hero-slide ph${x.kind === "partner" ? " is-ad" : ""}${k === i ? " is-active" : ""}`} aria-hidden={k !== i}>
+            <Image src={x.image} alt={x.alt} fill sizes="100vw" priority={k === 0} />
           </div>
         ))}
       </div>
       <div className="hero-shade" />
 
-      {s && (
+      {n > 1 && (
         <div className="hero-widget">
           <div className="hw-head">
             <span className="hw-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
             <div className="hero-bars" role="group" aria-label="Choisir une réalisation">
-              {slides.map((x, k) => (
+              {items.map((x, k) => (
                 <button key={x.image + k} className={`hero-bar${k === i ? " active" : ""}${k < i ? " done" : ""}`} style={{ "--d": `${DUR}ms` } as React.CSSProperties}
-                  aria-label={`Réalisation ${k + 1} : ${x.vendor.name}`} aria-current={k === i} onClick={() => go(k)}><span><i /></span></button>
+                  aria-label={x.kind === "vendor" ? `Réalisation ${k + 1} : ${x.slide.vendor.name}` : x.kind === "partner" ? `Partenaire : ${x.partner.partner}` : `Image ${k + 1}`} aria-current={k === i} onClick={() => go(k)}><span><i /></span></button>
               ))}
             </div>
             <span className="hw-num" aria-hidden="true">{String(n).padStart(2, "0")}</span>
@@ -64,13 +84,7 @@ export function Hero({ slides, categories, cities, texts }: { slides: Slide[]; c
                 : <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect x="2" y="1" width="2.6" height="10" rx="1" /><rect x="7.4" y="1" width="2.6" height="10" rx="1" /></svg>}
             </button>
           </div>
-          <Link className="hero-credit" href={vendorUrl(s.vendor.slug)} data-cursor="Voir">
-            <Image className="hero-credit-avatar" src={s.vendor.avatar} alt="" width={28} height={28} />
-            <span className="lbl">{s.video ? "Vidéo" : "Photo"}</span>
-            <span className="fade"><strong>{s.title || s.vendor.name}</strong></span>
-            <small className="fade">— {s.subtitle || (s.title ? `${s.vendor.name}, ${s.vendor.city}` : `${s.vendor.catName}, ${s.vendor.city}`)}</small>
-            <span className="go" aria-hidden="true">↗</span>
-          </Link>
+          <Credit item={s} />
         </div>
       )}
 
@@ -126,4 +140,35 @@ function heroLines(title: string) {
   const lines: string[][] = [];
   for (let i = 0; i < words.length; i += 2) lines.push(words.slice(i, i + 2));
   return lines;
+}
+
+/** Légende de l'élément affiché : prestataire (lien vers son profil) ou partenaire (lien vers son site) */
+function Credit({ item }: { item: Item }) {
+  if (item.kind === "vendor") {
+    const x = item.slide;
+    return (
+      <Link className="hero-credit" href={vendorUrl(x.vendor.slug)} data-cursor="Voir">
+        <Image className="hero-credit-avatar" src={x.vendor.avatar} alt="" width={28} height={28} />
+        <span className="lbl">{x.video ? "Vidéo" : "Photo"}</span>
+        <span className="fade"><strong>{x.title || x.vendor.name}</strong></span>
+        <small className="fade">— {x.subtitle || (x.title ? `${x.vendor.name}, ${x.vendor.city}` : `${x.vendor.catName}, ${x.vendor.city}`)}</small>
+        <span className="go" aria-hidden="true">↗</span>
+      </Link>
+    );
+  }
+  if (item.kind === "partner") {
+    const p = item.partner;
+    const body = (
+      <>
+        <span className="lbl">Partenaire</span>
+        <span className="fade"><strong>{p.partner}</strong></span>
+        {p.title && <small className="fade">— {p.title}</small>}
+        {p.link && <span className="go" aria-hidden="true">↗</span>}
+      </>
+    );
+    return p.link
+      ? <a className="hero-credit" href={p.link} target="_blank" rel="sponsored noopener noreferrer" data-cursor="Voir">{body}</a>
+      : <div className="hero-credit">{body}</div>;
+  }
+  return null;
 }

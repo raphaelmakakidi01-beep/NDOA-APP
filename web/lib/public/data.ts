@@ -121,7 +121,7 @@ export async function getHome(): Promise<Home> {
     c.from("reviews").select("author_names, city, wedding_date, created_at, rating, body, vendors(slug, name)")
       .eq("status", "published").gte("rating", 4).order("created_at", { ascending: false }).limit(12),
     // Publicités des partenaires : la RLS ne renvoie que celles actives et dans leur période
-    c.from("partner_ads").select("id, partner, title, image_path, link_url").order("sort").limit(12),
+    c.from("partner_ads").select("id, partner, title, image_path, link_url, show_in_hero").order("sort").limit(12),
   ]);
   if (home.error) console.error("get_home_content", home.error.message);
   const h = (home.data ?? {}) as Row;
@@ -153,7 +153,7 @@ export async function getHome(): Promise<Home> {
     picks: picks.filter((v) => v.slug !== (feature ?? picks[0])?.slug).slice(0, 4),
     stories, categories: categories.length ? categories : CATEGORIES.map((k) => ({ slug: k.slug, name: k.name, plural: k.name, count: vendors.filter((v) => v.cat === k.slug).length, image: categoryImage(k.slug, k.img) })),
     cities: ((h.cities as Row[] | null) ?? []).map((x) => s(x.name)), vendors, testimonials,
-    partners: ((ads.data as Row[] | null) ?? []).map((x) => ({ id: s(x.id), partner: s(x.partner), title: s(x.title), image: file(x.image_path, "site-media"), link: s(x.link_url) })).filter((p) => p.image),
+    partners: ((ads.data as Row[] | null) ?? []).map((x) => ({ id: s(x.id), partner: s(x.partner), title: s(x.title), image: file(x.image_path, "site-media"), link: s(x.link_url), hero: x.show_in_hero !== false })).filter((p) => p.image),
   };
 }
 
