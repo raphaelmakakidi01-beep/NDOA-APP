@@ -22,7 +22,10 @@ const visitor = () => {
 export function ViewTracker({ slug }: { slug: string }) {
   useEffect(() => {
     if (DEMO) return;
-    getSupabase()?.rpc("track_event", { p_vendor_slug: slug, p_event: "profile_view", p_source: document.referrer.includes(location.host) ? "recherche" : "direct", p_media_id: null, p_visitor: visitor() });
+    // La requête Supabase ne part qu'au .then() : sans lui, la visite n'était jamais enregistrée
+    getSupabase()
+      ?.rpc("track_event", { p_vendor_slug: slug, p_event: "profile_view", p_source: document.referrer.includes(location.host) ? "recherche" : "direct", p_media_id: null, p_visitor: visitor() })
+      .then(() => {}, () => {});
   }, [slug]);
   return null;
 }
