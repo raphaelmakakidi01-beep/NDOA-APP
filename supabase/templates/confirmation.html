@@ -1,29 +1,60 @@
 <!doctype html>
 <html lang="fr">
-  <body style="margin:0;padding:0;background:#F5F0E8;font-family:Arial,Helvetica,sans-serif;color:#1A1714;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0E8;padding:32px 16px;">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light only" />
+    <title>Confirmez votre adresse e-mail</title>
+  </head>
+  <body style="margin:0;padding:0;background:#F5F0E8;">
+    <!-- Aperçu affiché dans la boîte de réception, sous l'objet -->
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Plus qu'une étape pour activer votre compte NDOA Wedding.</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F5F0E8;">
       <tr>
-        <td align="center">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#FFFFFF;border-radius:16px;padding:36px 32px;">
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
+            <!-- En-tête noir avec le logo -->
             <tr>
-              <td style="font-family:Georgia,'Times New Roman',serif;font-size:22px;letter-spacing:4px;color:#8B4026;padding-bottom:24px;">NDOA <span style="color:#9A6B2F;">PRO</span></td>
-            </tr>
-            <tr>
-              <td style="font-size:16px;line-height:1.5;padding-bottom:8px;">Bienvenue sur NDOA Wedding&nbsp;!</td>
-            </tr>
-            <tr>
-              <td style="font-size:15px;line-height:1.5;color:#5C544C;padding-bottom:24px;">Voici votre code pour confirmer votre adresse e-mail et créer votre espace prestataire&nbsp;:</td>
-            </tr>
-            <tr>
-              <td align="center" style="padding-bottom:24px;">
-                <div style="display:inline-block;font-family:'Courier New',monospace;font-size:34px;font-weight:bold;letter-spacing:10px;color:#1A1714;background:#F5F0E8;border:1px solid #E6D9C3;border-radius:12px;padding:14px 22px;">{{ .Token }}</div>
+              <td align="center" bgcolor="#0A0A0B" style="background:#0A0A0B;border-radius:18px 18px 0 0;padding:28px 24px;">
+                <a href="https://www.ndoawedding.com" style="text-decoration:none;">
+                  <img src="https://www.ndoawedding.com/brand/ndoa-wedding-ivoire.png" width="150" alt="NDOA Wedding" style="display:block;width:150px;height:auto;border:0;color:#F5F0E8;font-family:Georgia,'Times New Roman',serif;font-size:22px;" />
+                </a>
               </td>
             </tr>
+            <!-- Filet doré -->
             <tr>
-              <td style="font-size:13px;line-height:1.5;color:#6B625A;">Ce code est valable 1&nbsp;heure. Si vous n’êtes pas à l’origine de cette inscription, ignorez simplement cet e-mail.</td>
+              <td height="3" bgcolor="#C4975A" style="background:#C4975A;font-size:0;line-height:0;">&nbsp;</td>
+            </tr>
+            <!-- Contenu -->
+            <tr>
+              <td bgcolor="#FFFFFF" style="background:#FFFFFF;border-radius:0 0 18px 18px;padding:36px 32px 32px;font-family:Arial,Helvetica,sans-serif;color:#17171A;">
+                <p style="margin:0 0 6px;font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#8B4026;">Plus qu'une étape</p>
+                <h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1.15;font-weight:normal;color:#17171A;">Confirmez votre adresse e-mail</h1>
+                <p style="margin:0 0 28px;font-size:16px;line-height:1.6;color:#4A443E;">Bienvenue sur NDOA Wedding&nbsp;! Pour activer votre compte, confirmez simplement que cette adresse vous appartient.</p>
+                <!-- Bouton compatible avec la plupart des messageries -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="center" bgcolor="#C4975A" style="background:#C4975A;border-radius:999px;">
+                      <a href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block;padding:15px 32px;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#0A0A0B;text-decoration:none;border-radius:999px;">Confirmer mon adresse</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:28px 0 6px;font-size:13px;line-height:1.5;color:#6B625A;">Le bouton ne fonctionne pas&nbsp;? Copiez ce lien dans votre navigateur&nbsp;:</p>
+                <p style="margin:0 0 24px;font-size:13px;line-height:1.5;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#8B4026;text-decoration:underline;">{{ .ConfirmationURL }}</a></p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr><td style="border-top:1px solid #EDE5D8;font-size:0;line-height:0;">&nbsp;</td></tr>
+                </table>
+                <p style="margin:20px 0 0;font-size:13px;line-height:1.55;color:#6B625A;">Vous n'avez pas créé de compte sur NDOA Wedding&nbsp;? Ignorez cet e-mail&nbsp;: aucun compte ne sera activé.</p>
+              </td>
+            </tr>
+            <!-- Pied de page -->
+            <tr>
+              <td align="center" style="padding:22px 16px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#8A8178;">
+                NDOA Wedding · Les prestataires de mariage en RDC<br />
+                <a href="https://www.ndoawedding.com" style="color:#8B4026;text-decoration:none;">www.ndoawedding.com</a> · <a href="mailto:contactsocimab@gmail.com" style="color:#8B4026;text-decoration:none;">contactsocimab@gmail.com</a>
+              </td>
             </tr>
           </table>
-          <p style="font-size:12px;color:#6B625A;margin-top:16px;">NDOA Wedding · Les meilleurs prestataires de mariage en RDC</p>
         </td>
       </tr>
     </table>

@@ -245,12 +245,11 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# E-mail de confirmation d'inscription : code à 6 chiffres saisi dans l'app (verifyOtp type « signup »)
-# À réactiver une fois un SMTP personnalisé configuré ([auth.email.smtp]) : Supabase refuse
-# la modification des modèles avec le serveur d'e-mails par défaut (offre gratuite).
-# [auth.email.template.confirmation]
-# subject = "Votre code NDOA Pro : {{ .Token }}"
-# content_path = "./supabase/templates/confirmation.html"
+# E-mail de confirmation d'inscription : lien de confirmation aux couleurs NDOA Wedding
+# (envoyé via le SMTP Brevo configuré côté Supabase).
+[auth.email.template.confirmation]
+subject = "Confirmez votre adresse e-mail — NDOA Wedding"
+content_path = "./supabase/templates/confirmation.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
