@@ -372,3 +372,7 @@
   .mk .intro-line { width: 128px; }
   .mk .intro ~ main .hero-inner > * { animation: none; }
 }
+/* Menu du haut : pastille Facebook (suivez-nous), discrète, dorée au survol */
+.mk .nav-social { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); color: var(--text); transition: color .25s ease-out, border-color .25s ease-out, background-color .25s ease-out; }
+.mk .nav-social:hover { color: var(--gold-hi); border-color: rgba(196, 151, 90, .6); background: rgba(196, 151, 90, .08); }
+.mk .nav-social:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
