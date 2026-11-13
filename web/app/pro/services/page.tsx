@@ -49,8 +49,8 @@ export default async function ServicesPrestataires() {
         </section>
 
         <section aria-labelledby="vitrine" className="border-t border-line">
-          <div className="mx-auto grid w-full max-w-[1280px] justify-items-start gap-5 px-5 py-16 sm:px-8 lg:py-20">
-            <h2 id="vitrine" className="font-display max-w-3xl text-3xl leading-[1.05] sm:text-5xl">Pas encore sur NDOA ? <em className="text-gold-ink">Votre vitrine est gratuite.</em></h2>
+          <div className="mx-auto grid w-full max-w-[1280px] justify-items-center gap-5 px-5 py-16 text-center sm:px-8 lg:py-20">
+            <h2 id="vitrine" className="font-display max-w-3xl text-balance text-3xl leading-[1.05] sm:text-5xl">Pas encore sur NDOA&nbsp;? <em className="block text-gold-ink">Votre vitrine est gratuite.</em></h2>
             <Link href="/inscription" className="inline-flex h-12 items-center rounded-full bg-gold px-6 text-[15px] font-semibold text-on-gold hover:brightness-105">Créer ma vitrine</Link>
           </div>
         </section>
