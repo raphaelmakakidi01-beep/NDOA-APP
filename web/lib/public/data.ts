@@ -9,6 +9,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { DEMO, SUPABASE_ANON_KEY, SUPABASE_MISSING, SUPABASE_URL } from "@/lib/config";
 import { CATEGORIES, categoryImage } from "@/lib/onboarding/catalog";
 import { DEMO_CARDS, DEMO_HOME, DEMO_INSPIRATION, demoProfile } from "./demo";
+import { SOCIAL_LABELS, isLocationCategory, isVideoCategory, parseCoords, parseVideoLinks, socialUrl } from "@/lib/vendor-extras";
 import type { Card, Category, DirectoryQuery, Home, InspirationItem, Profile, Testimonial } from "./types";
 
 type Row = Record<string, unknown>;
@@ -161,9 +162,9 @@ export async function getHome(): Promise<Home> {
 /* Profil                                                               */
 /* ------------------------------------------------------------------ */
 const PROFILE_SELECT = [
-  "id, slug, name, tagline, bio, style_tags, city, zones, languages, avatar_path, phone, whatsapp, details, is_verified, is_recommended",
+  "id, slug, name, tagline, bio, style_tags, city, zones, languages, avatar_path, phone, whatsapp, details, socials, is_verified, is_recommended",
   "rating_avg, rating_count, followers_count, response_minutes",
-  "cover:media!vendors_cover_fk(storage_path, kind, status)",
+  "cover:media!vendors_cover_fk(storage_path, poster_path, kind, status, is_hidden)",
   "vendor_categories(is_primary, categories(slug, name, name_plural, detail_schema))",
   "media!media_vendor_id_fkey(kind, storage_path, poster_path, width, height, alt, duration_s, sort, status, albums!media_album_id_fkey(title))",
   "packages(id, name, description, price_mode, price_amount, currency, includes, excludes, is_featured, sort, is_visible)",
@@ -245,6 +246,13 @@ export async function getProfile(slug: string): Promise<Profile | null> {
     availability,
     response: rm == null ? "" : rm < 60 ? "moins d’une heure" : `moins de ${Math.ceil(rm / 60)} h`,
     hasPhone: !!s(r.phone), hasWhatsapp: !!(s(r.whatsapp) || s(r.phone)),
+    coverVideo: cover && cover.kind === "video" && cover.status === "ready" && !cover.is_hidden && isVideoCategory(s(pc?.slug)) && file(cover.storage_path)
+      ? { src: file(cover.storage_path), poster: file(cover.poster_path) || coverImage } : null,
+    location: isLocationCategory(s(pc?.slug)) ? parseCoords(d.coordonnees) : null,
+    videoLinks: isVideoCategory(s(pc?.slug)) ? parseVideoLinks(d.liens_videos) : [],
+    socials: isVideoCategory(s(pc?.slug))
+      ? Object.entries((r.socials as Record<string, string> | null) ?? {}).map(([k, v]) => ({ network: k, label: SOCIAL_LABELS[k] ?? k, url: socialUrl(k, String(v)) ?? "" })).filter((x) => x.url)
+      : [],
   };
 }
 

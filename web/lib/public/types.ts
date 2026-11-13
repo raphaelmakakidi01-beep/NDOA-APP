@@ -43,6 +43,7 @@ export type GalleryItem = { image: string; width: number; height: number; alt: s
 export type Package = { id: string | null; name: string; description: string; price: number; currency: "USD" | "CDF"; fixed: boolean; featured: boolean; includes: string[]; excludes: string[] };
 export type Review = { names: string; image: string | null; date: string; city: string; rating: number; text: string; reply: string };
 
+export type SocialLink = { network: string; label: string; url: string };
 export type Profile = Card & {
   bio: string[];
   styleTags: string[];
@@ -64,6 +65,13 @@ export type Profile = Card & {
   response: string;
   hasPhone: boolean;
   hasWhatsapp: boolean;
+  /** vidéo de présentation en couverture (vidéastes, pilotes de drone) : boucle sans son */
+  coverVideo: { src: string; poster: string } | null;
+  /** salle : repère posé par le prestataire */
+  location: { lat: number; lng: number } | null;
+  /** vidéastes, pilotes de drone : vidéos en ligne et réseaux */
+  videoLinks: import("@/lib/vendor-extras").VideoLink[];
+  socials: SocialLink[];
 };
 
 export type InspirationItem = { image: string; width: number; height: number; alt: string; vendor: { slug: string; name: string; catName: string; city: string } };

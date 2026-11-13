@@ -121,7 +121,9 @@ export async function loadFromDb(userId: string, email?: string): Promise<{ draf
   // La couverture et les photos alimentent l’aperçu en direct et la section Couverture de « Ma vitrine »
   const toRef = (m: MediaItem): MediaRef => ({ id: m.id, url: m.url, source: "remote", name: m.name, size: m.size, width: m.width, height: m.height, status: m.status === "error" ? "error" : "ready", progress: 100 });
   const coverItem = items.find((m) => m.id === v.cover_media_id);
-  if (coverItem) draft.cover = toRef(coverItem);
+  // couverture : photo, ou vidéo de présentation (vidéastes et pilotes de drone)
+  if (coverItem?.kind === "video") draft.coverVideo = { ...toRef(coverItem), posterUrl: coverItem.posterUrl };
+  else if (coverItem) draft.cover = toRef(coverItem);
   draft.photos = items.filter((m) => m.kind === "photo" && m.status !== "error").map(toRef);
   const plan = ((v.subscriptions as { plan_id: string }[] | { plan_id: string } | null) && (Array.isArray(v.subscriptions) ? v.subscriptions[0]?.plan_id : (v.subscriptions as { plan_id: string }).plan_id)) ?? "free";
   return {
@@ -165,7 +167,7 @@ export const remote = {
     });
     if (insErr) {
       await sb.storage.from("vendor-media").remove([path, ...(posterPath ? [posterPath] : [])]);
-      throw new Error(/QUOTA_PHOTOS|QUOTA_VIDEOS/.test(insErr.message) ? "Limite de votre offre atteinte." : /QUOTA_STORAGE/.test(insErr.message) ? "Espace de stockage plein." : /FILE_TOO_LARGE/.test(insErr.message) ? "Fichier trop volumineux pour votre offre." : "Le fichier n’a pas pu être enregistré.");
+      throw new Error(/VIDEO_TOO_LONG/.test(insErr.message) ? "La vidéo de présentation doit durer 30 secondes maximum." : /QUOTA_PHOTOS|QUOTA_VIDEOS/.test(insErr.message) ? "Limite de votre offre atteinte." : /QUOTA_STORAGE/.test(insErr.message) ? "Espace de stockage plein." : /FILE_TOO_LARGE/.test(insErr.message) ? "Fichier trop volumineux pour votre offre." : "Le fichier n’a pas pu être enregistré.");
     }
     return { url: publicUrl(sb, path), posterUrl: posterPath ? publicUrl(sb, posterPath) : undefined };
   },
@@ -215,7 +217,7 @@ export const remote = {
       name: d.name.trim(), tagline: d.tagline || null, bio: d.bio || null, city: d.city, zones: d.zones, languages: d.languages,
       style_tags: d.styleTags ?? [], details: d.details ?? {}, phone, whatsapp: c.whatsappSame ? phone : toE164(c.country, c.whatsapp), email: c.email || null,
       socials: Object.fromEntries(Object.entries({ instagram: c.instagram, tiktok: c.tiktok, facebook: c.facebook, youtube: c.youtube, site: c.website }).filter(([, x]) => x)),
-      cover_media_id: d.cover?.source === "remote" ? d.cover.id : undefined,
+      cover_media_id: d.coverVideo?.source === "remote" ? d.coverVideo.id : d.cover?.source === "remote" ? d.cover.id : !d.coverVideo && !d.cover ? null : undefined,
       // photo de profil envoyée depuis l’espace : même convention de chemin que lib/onboarding/repo.ts
       avatar_path: d.avatar?.source === "remote" && d.avatar.id !== "avatar" ? `${d.vendorId}/avatar-${d.avatar.id}.webp` : undefined,
     }).eq("id", d.vendorId);

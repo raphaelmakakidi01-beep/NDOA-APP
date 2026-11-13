@@ -34,12 +34,14 @@ const nextConfig: NextConfig = {
       "default-src 'self'",
       `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${dev ? " 'unsafe-eval'" : ""}`,
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co",
+      "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://i.ytimg.com https://tiles.openfreemap.org",
       "media-src 'self' blob: https://*.supabase.co",
       "font-src 'self' data:",
-      `connect-src 'self' https://*.supabase.co wss://*.supabase.co${dev ? " ws:" : ""}`,
+      // cartes des salles (OpenFreeMap) : tuiles, styles et polices chargés par maplibre-gl dans un worker
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://tiles.openfreemap.org${dev ? " ws:" : ""}`,
+      "worker-src 'self' blob:",
       // anti-spam Cloudflare Turnstile (formulaire de demande de devis)
-      "frame-src 'self' https://challenges.cloudflare.com",
+      "frame-src 'self' https://challenges.cloudflare.com https://www.youtube-nocookie.com https://player.vimeo.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

@@ -27,6 +27,8 @@ import { checkPhoto, checkSignature, compressPhoto, PHOTO_ACCEPT } from "@/lib/m
 import type { Draft, MediaRef } from "@/lib/onboarding/types";
 import { toFieldErrors, type FieldErrors } from "@/lib/validation";
 import { cn } from "@/lib/utils";
+import { COVER_VIDEO_MAX_S, MAX_VIDEO_LINKS, VIDEO_LINK_LABELS, isLocationCategory, isVideoCategory, parseVideoLink } from "@/lib/vendor-extras";
+import { LocationPicker } from "./location-picker";
 
 const SECTIONS = [
   { id: "identite", label: "Identité" }, { id: "couverture", label: "Couverture" }, { id: "presentation", label: "Présentation" },
@@ -179,7 +181,7 @@ export function Vitrine() {
 
           {/* Couverture */}
           <Card id="couverture" className="scroll-mt-36" aria-labelledby="h-couverture">
-            <CardHeader id="h-couverture" title="Couverture" sub={SUBSCRIPTIONS_ENABLED ? "Une photo, ou une vidéo courte qui se lance en boucle et sans son (offre Pro)." : "Une photo, ou une vidéo courte qui se lance en boucle et sans son."} action={<Button variant="outline" size="sm" onClick={() => setCoverOpen(true)}><Images aria-hidden />Choisir</Button>} />
+            <CardHeader id="h-couverture" title="Couverture" sub={isVideoCategory(cat) ? `Votre vidéo de présentation (${COVER_VIDEO_MAX_S} secondes maximum) tourne en boucle et sans son en haut de votre fiche. Ajoutez-la d’abord dans la Galerie.` : SUBSCRIPTIONS_ENABLED ? "Une photo, ou une vidéo courte qui se lance en boucle et sans son (offre Pro)." : "Une photo qui ouvre votre fiche."} action={<Button variant="outline" size="sm" onClick={() => setCoverOpen(true)}><Images aria-hidden />Choisir</Button>} />
             <div className="relative aspect-[16/7] overflow-hidden rounded-2xl bg-surface-2">
               {form.coverVideo?.posterUrl || form.coverVideo?.url ? (
                 form.coverVideo.url
@@ -228,9 +230,41 @@ export function Vitrine() {
                     )}
                   </Field>
                 ))}
+                {isLocationCategory(cat) && <LocationPicker value={form.details?.coordonnees} city={form.city} onChange={(v) => setDetail("coordonnees", v)} />}
               </div>
             ) : <p className="text-sm text-muted">Aucun champ spécifique pour votre activité. Votre bio et vos photos font le travail !</p>}
           </Card>
+
+          {/* Vidéastes et pilotes de drone : vidéos en ligne (le reste du travail, en liens) */}
+          {isVideoCategory(cat) && (
+            <Card id="videos" className="scroll-mt-36" aria-labelledby="h-videos">
+              <CardHeader id="h-videos" title="Vos vidéos en ligne" sub={`Ajoutez les liens de vos films, teasers et plans aériens (YouTube, Vimeo, Instagram, TikTok, Facebook) : un lien par ligne, ${MAX_VIDEO_LINKS} au maximum. Les vidéos YouTube et Vimeo se regardent directement sur votre fiche.`} />
+              <Field id="d-liens_videos" label="Liens des vidéos" optional>
+                {({ id, describedBy }) => (
+                  <Textarea id={id} rows={5} value={form.details?.liens_videos ?? ""} onChange={(e) => setDetail("liens_videos", e.target.value)} aria-describedby={describedBy}
+                    placeholder={"https://youtu.be/…\nhttps://www.instagram.com/reel/…"} />
+                )}
+              </Field>
+              {(() => {
+                const lines = (form.details?.liens_videos ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
+                if (!lines.length) return null;
+                return (
+                  <ul className="mt-3 grid gap-1.5">
+                    {lines.slice(0, MAX_VIDEO_LINKS + 2).map((l, i) => {
+                      const v = parseVideoLink(l);
+                      const over = i >= MAX_VIDEO_LINKS;
+                      return (
+                        <li key={i} className={cn("flex items-center gap-2 text-[13px]", !v || over ? "text-danger" : "text-muted")}>
+                          <span className={cn("shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-semibold", v && !over ? "bg-surface-2 text-text" : "bg-danger/10")}>{over ? "En trop" : v ? VIDEO_LINK_LABELS[v.kind] : "Lien invalide"}</span>
+                          <span className="truncate">{l}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                );
+              })()}
+            </Card>
+          )}
 
           {/* Zones & langues */}
           <Card id="zones" className="scroll-mt-36" aria-labelledby="h-zones">

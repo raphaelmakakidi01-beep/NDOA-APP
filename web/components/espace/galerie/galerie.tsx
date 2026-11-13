@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/bits";
 import { useEspace } from "@/lib/espace/store";
 import { PLANS } from "@/lib/espace/types";
 import { cn, formatBytes } from "@/lib/utils";
+import { COVER_VIDEO_MAX_S, isVideoCategory } from "@/lib/vendor-extras";
 import { AlbumsTab } from "./albums-tab";
 import { MediaTab } from "./media-tab";
 import { StoriesTab } from "./stories-tab";
@@ -20,9 +21,9 @@ const TABS = [
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
-function Gauge({ label, used, max, display }: { label: string; used: number; max: number; display: string }) {
+function Gauge({ label, used, max, display, calm }: { label: string; used: number; max: number; display: string; calm?: boolean }) {
   const pct = max ? Math.min(100, (used / max) * 100) : 100;
-  const tone = !max ? "bg-line-strong" : pct >= 90 ? "bg-danger" : pct >= 75 ? "bg-rose" : "bg-gold";
+  const tone = !max ? "bg-line-strong" : calm ? "bg-gold" : pct >= 90 ? "bg-danger" : pct >= 75 ? "bg-rose" : "bg-gold";
   return (
     <div className="min-w-0">
       <div className="mb-1.5 flex items-baseline justify-between gap-2 text-[13px]"><span className="text-muted">{label}</span><span className="font-semibold tabular-nums">{display}</span></div>
@@ -34,7 +35,8 @@ function Gauge({ label, used, max, display }: { label: string; used: number; max
 }
 
 export function Galerie() {
-  const { data, usage } = useEspace();
+  const { data, usage, vendor } = useEspace();
+  const presentation = isVideoCategory(vendor.primaryCategory ?? vendor.categories[0]);
   const params = useSearchParams();
   const router = useRouter();
   const path = usePathname();
@@ -62,7 +64,9 @@ export function Galerie() {
         </div>
         <section aria-label={`Stockage de l’offre ${plan.name}`} className="grid w-full gap-3 rounded-2xl border border-line bg-surface p-4 sm:w-auto sm:min-w-[420px] sm:grid-cols-3">
           <Gauge label="Photos" used={usage.photos} max={plan.maxPhotos} display={`${usage.photos} / ${plan.maxPhotos}`} />
-          <Gauge label="Vidéos" used={usage.videos} max={plan.maxVideos} display={plan.maxVideos ? `${usage.videos} / ${plan.maxVideos}` : "Offre Pro"} />
+          {presentation
+            ? <Gauge label={`Vidéo de présentation · ${COVER_VIDEO_MAX_S} s max`} used={usage.videos} max={1} calm display={`${usage.videos} / 1`} />
+            : <Gauge label="Vidéos" used={usage.videos} max={plan.maxVideos} display={plan.maxVideos ? `${usage.videos} / ${plan.maxVideos}` : "Offre Pro"} />}
           <Gauge label="Stockage" used={usage.bytes} max={plan.storageMb * 1024 * 1024} display={`${formatBytes(Math.max(usage.bytes, 1))} / ${plan.storageMb >= 1024 ? `${plan.storageMb / 1024} Go` : `${plan.storageMb} Mo`}`} />
           {storagePct >= 80 && (
             <p className="text-[13px] text-rose-ink sm:col-span-3">Votre espace est presque plein. {SUBSCRIPTIONS_ENABLED && <Link href="/espace/abonnement" className="font-semibold underline underline-offset-4">Passer à l’offre supérieure</Link>}</p>

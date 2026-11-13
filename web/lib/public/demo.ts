@@ -94,10 +94,15 @@ export function demoProfile(slug: string): Profile | null {
     dist: [88, 9, 2, 1, 0],
     facts: ["Rendez-vous de préparation", "Devis détaillé sous 48 h"],
     keyFigures: [[String(v.reviews), "avis vérifiés"], [String(Math.round(v.reviews * 1.8)), "mariages réalisés"]],
-    address: "", access: "",
+    address: v.cat === "salle" ? "Boulevard du 30 Juin, Gombe, Kinshasa" : "", access: v.cat === "salle" ? "Entrée côté fleuve, parking surveillé" : "",
     highlights: [{ title: "Mariages", frames: v.gallery, caption: "Nos dernières réalisations" }, { title: "Coulisses", frames: [v.gallery[2], v.gallery[0]], caption: "Préparatifs" }],
     availability: {},
     response: "moins de 3 h", hasPhone: true, hasWhatsapp: true,
+    // démo : la salle a son repère sur la carte, les métiers vidéo affichent leurs réseaux
+    coverVideo: null,
+    location: v.cat === "salle" ? { lat: -4.3036, lng: 15.3072 } : null,
+    videoLinks: [],
+    socials: v.cat === "videaste" || v.cat === "drone" ? [{ network: "instagram", label: "Instagram", url: "https://www.instagram.com/" }, { network: "youtube", label: "YouTube", url: "https://www.youtube.com/" }] : [],
   };
 }
 

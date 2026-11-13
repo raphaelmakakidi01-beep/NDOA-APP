@@ -6,6 +6,9 @@ import { Suspense } from "react";
 import { compact, fmt, priceLabel, vendorUrl } from "@/components/mk/format";
 import { Clock, No, Pin, Route, Star, Stars, Tag, Verified, Yes } from "@/components/mk/icons";
 import { Calendar, Gallery, Highlights, MobileBar, MoreReviews, ProfileActions, Tabs, ViewTracker } from "@/components/mk/profile-client";
+import { VenueMap } from "@/components/mk/venue-map";
+import { VideoLinks } from "@/components/mk/video-links";
+import { directionsUrl } from "@/lib/vendor-extras";
 import { QuoteButton, QuoteProvider } from "@/components/mk/quote";
 import { getDirectory, getProfile } from "@/lib/public/data";
 import type { Profile, Review } from "@/lib/public/types";
@@ -66,7 +69,11 @@ async function ProfileView({ params }: { params: PageProps<"/prestataires/[slug]
       <ViewTracker slug={p.slug} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonld).replace(/</g, "\\u003c") }} />
       <section className="cover" aria-label="Couverture">
-        <div className="cover-media ph"><Image src={p.coverImage} alt={`Réalisation de ${p.name}`} fill sizes="100vw" priority /></div>
+        <div className="cover-media ph">
+          {p.coverVideo
+            ? <video className="cover-video" src={p.coverVideo.src} poster={p.coverVideo.poster} autoPlay muted loop playsInline preload="metadata" aria-label={`Vidéo de présentation de ${p.name}`} />
+            : <Image src={p.coverImage} alt={`Réalisation de ${p.name}`} fill sizes="100vw" priority />}
+        </div>
         <nav className="crumbs" aria-label="Fil d’Ariane"><div className="container"><ol>
           <li><Link href="/">Accueil</Link></li>
           <li><Link href={`/prestataires?categorie=${p.cat}`}>{p.catName}</Link></li>
@@ -177,6 +184,38 @@ async function ProfileView({ params }: { params: PageProps<"/prestataires/[slug]
           </div>
         </aside>
       </div>
+
+      {(p.videoLinks.length > 0 || p.socials.length > 0) && (
+        <section className="pp-extra" aria-labelledby="vidTitle">
+          <div className="container">
+            <p className="eyebrow">Vidéos</p>
+            <h2 className="display h2 pp-extra-h" id="vidTitle">Films et <em className="gold-text">réseaux</em></h2>
+            <VideoLinks links={p.videoLinks} socials={p.socials} name={p.name} />
+          </div>
+        </section>
+      )}
+
+      {p.location && (
+        <section className="pp-extra" aria-labelledby="locTitle">
+          <div className="container">
+            <p className="eyebrow">Localisation</p>
+            <h2 className="display h2 pp-extra-h" id="locTitle">Où se trouve <em className="gold-text">la salle</em></h2>
+            <div className="loc">
+              <div className="loc-info">
+                <p className="loc-name">{p.name}</p>
+                {p.address && <p className="loc-addr">{p.address}</p>}
+                {p.access && <p className="loc-access">{p.access}</p>}
+                <p className="loc-city">{p.city}</p>
+                <div className="loc-actions">
+                  <a className="btn btn-gold" href={directionsUrl(p.location)} target="_blank" rel="noopener">Itinéraire <span className="arrow">→</span></a>
+                  <QuoteButton className="btn btn-ghost">Demander un devis</QuoteButton>
+                </div>
+              </div>
+              <VenueMap lat={p.location.lat} lng={p.location.lng} name={p.name} />
+            </div>
+          </div>
+        </section>
+      )}
 
       {similar.length > 0 && (
         <section className="more" aria-labelledby="simTitle">

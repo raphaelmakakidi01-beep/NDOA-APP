@@ -9,6 +9,7 @@ import { getSupabase } from "@/lib/supabase/client";
 import { cacheDraft, loadDraft } from "@/lib/onboarding/repo";
 import { emptyDraft, type Draft } from "@/lib/onboarding/types";
 import { uid, formatBytes } from "@/lib/utils";
+import { COVER_VIDEO_MAX_MB, COVER_VIDEO_MAX_S, isVideoCategory } from "@/lib/vendor-extras";
 import { cacheEspace, forgetBlob, loadDemoEspace, loadFromDb, probeVideo, putBlob, remote } from "./repo";
 import { PLANS, type Album, type EspaceData, type MediaItem, type Notification, type Story } from "./types";
 
@@ -160,16 +161,25 @@ export function EspaceProvider({ children }: { children: React.ReactNode }) {
     let videos = d.media.filter((m) => m.kind === "video" && m.status !== "error").length;
     let bytes = d.media.reduce((s, m) => s + m.size, 0);
     const queue: { file: File; kind: "photo" | "video" }[] = [];
+    const v = ref.current.vendor;
+    const presentation = isVideoCategory(v?.primaryCategory ?? v?.categories[0]);
 
     for (const file of Array.from(files)) {
       const isVideo = isVideoFile(file);
       if (isVideo) {
         const bad = checkVideo(file);
         if (bad) { toast.error(bad); continue; }
-        if (!plan.maxVideos) { toast.error("Les vidéos sont disponibles à partir de l’offre Pro.", { action: { label: "Voir les offres", onClick: () => router.push("/espace/abonnement") } }); continue; }
-        if (videos >= plan.maxVideos) { toast.error(`Limite de ${plan.maxVideos} vidéos atteinte pour l’offre ${plan.name}.`); continue; }
-        if (file.size > plan.maxVideoMb * 1024 * 1024) { toast.error(`« ${file.name} » dépasse ${plan.maxVideoMb} Mo.`); continue; }
-        videos++;
+        if (presentation) {
+          // vidéastes, pilotes de drone : une seule vidéo de présentation, quelle que soit l’offre
+          if (videos >= 1) { toast.error("Vous avez déjà une vidéo de présentation. Supprimez-la pour en mettre une autre ; vos autres films se partagent en liens dans « Ma vitrine »."); continue; }
+          if (file.size > COVER_VIDEO_MAX_MB * 1024 * 1024) { toast.error(`« ${file.name} » dépasse ${COVER_VIDEO_MAX_MB} Mo. Exportez une version plus légère (1080p suffit).`); continue; }
+          videos++;
+        } else {
+          if (!plan.maxVideos) { toast.error("Les vidéos sont disponibles à partir de l’offre Pro.", { action: { label: "Voir les offres", onClick: () => router.push("/espace/abonnement") } }); continue; }
+          if (videos >= plan.maxVideos) { toast.error(`Limite de ${plan.maxVideos} vidéos atteinte pour l’offre ${plan.name}.`); continue; }
+          if (file.size > plan.maxVideoMb * 1024 * 1024) { toast.error(`« ${file.name} » dépasse ${plan.maxVideoMb} Mo.`); continue; }
+          videos++;
+        }
       } else {
         const err = checkPhoto(file);
         if (err) { toast.error(err); continue; }
@@ -201,6 +211,7 @@ export function EspaceProvider({ children }: { children: React.ReactNode }) {
         } else {
           const p = await probeVideo(file);
           ({ duration, width, height, poster } = p);
+          if (presentation && !(duration <= COVER_VIDEO_MAX_S + 0.5)) throw new Error(`La vidéo de présentation doit durer ${COVER_VIDEO_MAX_S} secondes maximum (celle-ci dure ${Math.round(duration || 0)} s). Coupez-la puis renvoyez-la.`);
           patchItem(item.id, { posterUrl: poster ? URL.createObjectURL(poster) : undefined, duration, progress: 20 });
         }
         const done = await remote.upload(ref.current.vendor?.vendorId, item.id, item.kind, blob, (pr) => patchItem(item.id, { progress: 30 + Math.round(pr * 0.7) }), { width, height, duration, poster, albumId });
