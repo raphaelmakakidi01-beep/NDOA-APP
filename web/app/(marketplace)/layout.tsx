@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Assistant } from "@/components/mk/assistant";
 import { MkFooter } from "@/components/mk/footer";
+import { Intro } from "@/components/mk/intro";
 import { RouteProgress, ScrollReveal } from "@/components/mk/motion";
 import { MkNav } from "@/components/mk/nav";
 import { WhatsAppFab } from "@/components/mk/whatsapp-fab";
@@ -31,6 +32,7 @@ export default async function MarketplaceLayout({ children }: LayoutProps<"/">) 
   const assistant = DEMO || !!process.env.ANTHROPIC_API_KEY;
   return (
     <div className="mk">
+      <Intro />
       <Suspense fallback={null}>
         <RouteProgress />
         <ScrollReveal />
