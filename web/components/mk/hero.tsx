@@ -43,6 +43,8 @@ export function Hero({ slides, partners = [], categories, cities, texts }: { sli
   const items = buildItems(slides, partners);
   const [i, setI] = useState(0);
   const [userPaused, setPaused] = useState(false);
+  // mobile : seule la ligne « métier + loupe » est visible ; ville, date et budget se déplient à la demande
+  const [moreFilters, setMoreFilters] = useState(false);
   const still = useSyncExternalStore(subscribe, stilled, () => false);
   const paused = userPaused || still;
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -110,7 +112,7 @@ export function Hero({ slides, partners = [], categories, cities, texts }: { sli
         )}
         <p className="hero-sub">{texts?.subtitle ?? <>Photographes, salles, traiteurs, DJ, décorateurs… Trouvez, comparez et réservez les meilleurs talents{cities.length ? <> à <b>{cities.slice(0, 4).join(", ")}</b></> : " en RDC"}.</>}</p>
 
-        <form className="search glass" action="/prestataires" method="get" role="search" aria-label="Rechercher un prestataire">
+        <form className={`search glass${moreFilters ? " is-open" : ""}`} action="/prestataires" method="get" role="search" aria-label="Rechercher un prestataire">
           <div className="field f-what">
             <label htmlFor="s-cat">Prestataire</label>
             <Select id="s-cat" name="categorie" options={[{ value: "", label: "Tous les métiers" }, ...categories.map((c) => ({ value: c.slug, label: c.plural }))]} />
@@ -127,7 +129,10 @@ export function Hero({ slides, partners = [], categories, cities, texts }: { sli
             <label htmlFor="s-budget">Budget</label>
             <Select id="s-budget" name="budget" options={[{ value: "", label: "Tous" }, ...BUDGETS.map(([value, label]) => ({ value, label }))]} />
           </div>
-          <button className="btn btn-gold" type="submit"><Search />Rechercher</button>
+          <button className="btn btn-gold" type="submit"><Search /><span className="search-label">Rechercher</span></button>
+          <button type="button" className="search-more" aria-expanded={moreFilters} onClick={() => setMoreFilters((o) => !o)}>
+            {moreFilters ? "Moins de filtres" : "Ville, date, budget"}<span aria-hidden="true">{moreFilters ? " −" : " +"}</span>
+          </button>
         </form>
       </div>
     </section>

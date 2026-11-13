@@ -261,6 +261,21 @@
   .mk .hero-inner { padding-top: calc(var(--nav-h) + 96px); padding-bottom: 20px; }
   .mk .hero-sub { margin-bottom: 18px; line-height: 1.45; }
   .mk .hero-credit small { font-size: .7rem; }
+  /* Recherche compacte : métier + loupe sur une ligne, les autres filtres se déplient ; les photos restent visibles */
+  .mk .search.glass { grid-template-columns: minmax(0, 1fr) auto; gap: 6px; padding: 6px; border-radius: 22px; }
+  .mk .search .field { padding: 8px 14px 7px; border-radius: 16px; }
+  .mk .search .field:not(.f-what) { display: none; }
+  .mk .search .field.f-what { grid-column: auto; }
+  .mk .search .btn { min-height: 48px; width: 48px; padding: 0; border-radius: 16px; }
+  .mk .search .btn .search-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .mk .search.is-open { grid-template-columns: 1fr 1fr; }
+  .mk .search.is-open .field { display: block; }
+  .mk .search.is-open .field.f-what { grid-column: 1 / -1; }
+  .mk .search.is-open .btn { width: auto; padding: 0 16px; }
+  .mk .search.is-open .btn .search-label { position: static; width: auto; height: auto; overflow: visible; clip-path: none; }
+  .mk .search-more { grid-column: 1 / -1; justify-self: center; padding: 2px 10px 4px; border: 0; background: none; color: rgba(245, 240, 232, .78); font: 600 .78rem/1.4 var(--sans); letter-spacing: .01em; cursor: pointer; }
+  .mk .search-more:hover, .mk .search-more:focus-visible { color: var(--gold-hi); }
+  .mk .hero-sub { font-size: .95rem; }
   /* Catégories : grille régulière et compacte */
   .mk .bento { grid-auto-rows: 118px; gap: 10px; }
   .mk .cat { padding: 12px; }
@@ -324,3 +339,5 @@
   .mk .pc-caption { grid-template-columns: auto minmax(0, 1fr); }
   .mk .pc-link { grid-column: 1 / -1; width: 100%; }
 }
+.mk .search-more { display: none; }
+@media (max-width: 699px) { .mk .search-more { display: block; } }
