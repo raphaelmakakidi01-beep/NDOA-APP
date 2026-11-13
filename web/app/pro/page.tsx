@@ -7,6 +7,7 @@ import { OFFERS, PLANS, type PlanId } from "@/lib/espace/types";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import { MIN_PHOTOS } from "@/lib/onboarding/types";
 import { cn } from "@/lib/utils";
+import { VENDOR_SERVICES } from "@/components/public/vendor-services";
 
 const nf = (n: number) => new Intl.NumberFormat("fr-FR").format(n);
 
@@ -125,6 +126,26 @@ export default function ProHome() {
             <p className="mt-6 text-sm text-muted">Les offres payantes s’activent depuis votre espace, une fois la vitrine créée.</p>
           </div>
         </section>}
+
+        {/* Services aux prestataires */}
+        <section id="services" aria-labelledby="services-titre" className="scroll-mt-6 border-t border-line">
+          <div className="mx-auto w-full max-w-[1280px] px-5 py-20 sm:px-8 lg:py-28">
+            <p className="text-sm font-bold uppercase tracking-[.16em] text-gold-ink">Services aux prestataires</p>
+            <h2 id="services-titre" className="mt-3 font-display max-w-3xl text-4xl leading-[1.02] sm:text-5xl">Besoin d’aide pour votre image ? <em className="text-gold-ink">L’équipe NDOA s’en charge.</em></h2>
+            <ul className="mt-12 grid gap-5 md:grid-cols-3">
+              {VENDOR_SERVICES.map((sv) => (
+                <li key={sv.id}>
+                  <Link href={`/pro/services#${sv.id}`} className="group grid h-full content-start gap-4 rounded-3xl border border-line p-7 transition-colors hover:border-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60">
+                    <span className="grid size-12 place-items-center rounded-full bg-gold/15 text-gold-ink"><sv.icon className="size-5" aria-hidden /></span>
+                    <h3 className="font-display text-2xl leading-tight sm:text-3xl">{sv.title}</h3>
+                    <p className="text-muted">{sv.text}</p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Button asChild variant="outline" size="lg" className="mt-10"><Link href="/pro/services">Découvrir les services <ArrowRight aria-hidden /></Link></Button>
+          </div>
+        </section>
 
         {/* Questions fréquentes */}
         <section id="faq" aria-labelledby="faq-titre" className="scroll-mt-6 border-t border-line">

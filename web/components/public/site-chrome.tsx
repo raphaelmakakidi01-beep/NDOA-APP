@@ -36,6 +36,7 @@ export function SiteFooter() {
           <Link href="/inscription" className={linkCls}>Créer ma vitrine</Link>
           <Link href="/connexion" className={linkCls}>Connexion</Link>
           {SUBSCRIPTIONS_ENABLED && <Link href="/pro#tarifs" className={linkCls}>Tarifs</Link>}
+          <Link href="/pro/services" className={linkCls}>Services aux prestataires</Link>
           <Link href="/pro#faq" className={linkCls}>Questions fréquentes</Link>
         </nav>
         <nav aria-label="Informations légales" className="grid content-start gap-2.5 text-sm">

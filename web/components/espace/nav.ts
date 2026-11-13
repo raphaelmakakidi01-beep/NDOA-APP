@@ -1,4 +1,4 @@
-import { BarChart3, Calendar, CreditCard, Home, Images, Inbox, MessageSquareQuote, Settings, Store, Tags } from "lucide-react";
+import { BarChart3, Calendar, CreditCard, Home, Images, Inbox, Megaphone, MessageSquareQuote, Settings, Store, Tags } from "lucide-react";
 
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 
@@ -12,6 +12,7 @@ export const NAV = [
   { href: "/espace/calendrier", label: "Calendrier", icon: Calendar, ready: true },
   { href: "/espace/avis", label: "Avis", icon: MessageSquareQuote, ready: true },
   { href: "/espace/statistiques", label: "Statistiques", icon: BarChart3, ready: true },
+  { href: "/espace/services", label: "Services NDOA", icon: Megaphone, ready: true },
   { href: "/espace/abonnement", label: "Abonnement", icon: CreditCard, ready: true },
   { href: "/espace/parametres", label: "Paramètres", icon: Settings, ready: true },
 ].filter((n) => SUBSCRIPTIONS_ENABLED || n.href !== "/espace/abonnement");

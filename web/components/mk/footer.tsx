@@ -31,6 +31,7 @@ export function MkFooter() {
             <div><h4>NDOA Wedding</h4><ul>
               <li><Link href="/pro">Devenir prestataire</Link></li>
               <li><Link href="/connexion">Espace prestataire</Link></li>
+              <li><Link href="/pro/services">Services aux prestataires</Link></li>
               <li><Link href="/contact">Contact</Link></li>
             </ul></div>
           </div>
