@@ -5,6 +5,7 @@ import { Arrow } from "@/components/mk/icons";
 import { fmt, priceLabel, rate, vendorUrl } from "@/components/mk/format";
 import { Hero } from "@/components/mk/hero";
 import { StoriesRow, Testimonials } from "@/components/mk/home-client";
+import { PartnersCarousel } from "@/components/mk/partners-carousel";
 import { VendorCard } from "@/components/mk/vendor-card";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/config";
 import { getHome } from "@/lib/public/data";
@@ -164,28 +165,7 @@ export default async function Accueil() {
             </div>
             <p className="lead">Des offres choisies pour votre mariage, auprès d’entreprises qui accompagnent NDOA Wedding.</p>
           </div>
-          <ul className="partners" data-count={Math.min(h.partners.length, 3)}>
-            {h.partners.map((p) => {
-              const body = (
-                <>
-                  <span className="partner-media">
-                    <Image src={p.image} alt={p.title ? `${p.partner} — ${p.title}` : p.partner} fill sizes={h.partners.length === 1 ? "(max-width: 1100px) 100vw, 1080px" : "(max-width: 700px) 85vw, (max-width: 1100px) 50vw, 33vw"} />
-                    <span className="partner-tag">Partenaire</span>
-                  </span>
-                  <span className="partner-text">
-                    <b>{p.partner}</b>
-                    {p.title && <span>{p.title}</span>}
-                  </span>
-                  {p.link && <span className="partner-go" aria-hidden>Découvrir <Arrow /></span>}
-                </>
-              );
-              return (
-                <li key={p.id}>
-                  {p.link ? <a className="partner" href={p.link} target="_blank" rel="sponsored noopener noreferrer">{body}</a> : <div className="partner">{body}</div>}
-                </li>
-              );
-            })}
-          </ul>
+          <PartnersCarousel partners={h.partners} />
         </div>
       </section>}
 
