@@ -44,7 +44,7 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /** Lien de confirmation de l’e-mail : retour sur /auth/callback, puis création de la vitrine */
 const emailRedirectTo = (next = "/onboarding/activite") => `${location.origin}/auth/callback?source=email&suite=${encodeURIComponent(next)}`;
 
-export async function signUp(input: { method: Method; email?: string; phone?: string; password: string; fullName: string; channel: Channel; next?: string }) {
+export async function signUp(input: { method: Method; email?: string; phone?: string; password: string; fullName: string; channel: Channel; next?: string; accountType?: "couple" | "prestataire" }) {
   const pending: Pending = { method: input.method, email: input.email, phone: input.phone, fullName: input.fullName, channel: input.channel, purpose: "signup", next: input.next };
   const sb = await loadSupabase();
   if (!sb) {
@@ -54,11 +54,19 @@ export async function signUp(input: { method: Method; email?: string; phone?: st
   }
   const { error } =
     input.method === "email"
-      ? await sb.auth.signUp({ email: input.email!, password: input.password, options: { data: { full_name: input.fullName }, emailRedirectTo: emailRedirectTo(input.next) } })
-      : await sb.auth.signUp({ phone: input.phone!, password: input.password, options: { data: { full_name: input.fullName }, channel: input.channel } });
+      ? await sb.auth.signUp({ email: input.email!, password: input.password, options: { data: { full_name: input.fullName, account_type: input.accountType ?? "prestataire" }, emailRedirectTo: emailRedirectTo(input.next) } })
+      : await sb.auth.signUp({ phone: input.phone!, password: input.password, options: { data: { full_name: input.fullName, account_type: input.accountType ?? "prestataire" }, channel: input.channel } });
   if (error) return { ok: false as const, error: fr(error.message) };
   write(K_PENDING, pending);
   return { ok: true as const };
+}
+
+/** Page d'arrivée après connexion sans destination demandée : compte couple → Mon compte, prestataire → sa vitrine */
+export async function homeAfterLogin(): Promise<string> {
+  const sb = await loadSupabase();
+  if (!sb) return "/onboarding";
+  const { data } = await sb.auth.getSession();
+  return data.session?.user.user_metadata?.account_type === "couple" ? "/mon-compte" : "/onboarding";
 }
 
 export async function signIn(input: { identifier: string; password: string }) {

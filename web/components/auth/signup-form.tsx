@@ -44,6 +44,12 @@ export function SignupForm() {
     setTimeout(() => document.getElementById(m === "email" ? "f-email" : "f-phone")?.focus(), 0);
   };
 
+  /** Couple ou prestataire : l'adresse suit le choix (lien partageable, retour arrière cohérent) */
+  const chooseType = (v: boolean) => {
+    setCouple(v);
+    window.history.replaceState(null, "", v ? "/inscription?compte=couple" : "/inscription");
+  };
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     const parsed = signupSchema.safeParse({ fullName, method, email, country, phone, password, terms });
@@ -60,6 +66,7 @@ export function SignupForm() {
       email: method === "email" ? email.trim().toLowerCase() : undefined,
       phone: method === "phone" ? toE164(country, phone) : undefined,
       next: couple ? "/mon-compte" : undefined,
+      accountType: couple ? "couple" : "prestataire",
     });
     setBusy(false);
     if (!r.ok) { toast.error(r.error); return; }
@@ -68,9 +75,18 @@ export function SignupForm() {
 
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-4">
+      <div role="radiogroup" aria-label="Type de compte" className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-surface-2 p-1">
+        {([[true, "Je prépare mon mariage"], [false, "Je suis prestataire"]] as const).map(([v, label]) => (
+          <button key={label} type="button" role="radio" aria-checked={couple === v} onClick={() => chooseType(v)}
+            className={cn("rounded-lg px-2 py-2.5 text-[13.5px] font-semibold leading-tight transition-colors",
+              couple === v ? "bg-surface text-text shadow-sm ring-1 ring-gold/50" : "text-muted hover:text-text")}>
+            {label}
+          </button>
+        ))}
+      </div>
       <div className="mb-1">
         <h1 className="font-display text-[2.25rem] leading-[1.05] sm:text-[2.6rem]">{couple ? <>Créez votre <em className="text-gold-ink">compte</em></> : <>Bienvenue, créons votre <em className="text-gold-ink">vitrine</em></>}</h1>
-        <p className="mt-2 text-[15px] leading-relaxed text-muted">{couple ? "Facultatif : gardez vos favoris, vos prestataires suivis et vos demandes de devis." : "Quelques informations suffisent pour commencer. C’est gratuit et sans carte bancaire."}</p>
+        <p className="mt-2 text-[15px] leading-relaxed text-muted">{couple ? "Gratuit : gardez vos prestataires favoris, suivez leurs réalisations et retrouvez vos demandes de devis." : "Quelques informations suffisent pour commencer. C’est gratuit et sans carte bancaire."}</p>
       </div>
 
       {GOOGLE_AUTH_ENABLED && <><GoogleButton /><OrSeparator /></>}
@@ -107,7 +123,7 @@ export function SignupForm() {
           <Field id="f-email" label="E-mail" error={errors.email}>
             {({ describedBy, invalid }) => (
               <Input id="f-email" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="vous@studio.cd" aria-describedby={describedBy} aria-invalid={invalid || undefined} />
+                placeholder={couple ? "vous@exemple.com" : "vous@studio.cd"} aria-describedby={describedBy} aria-invalid={invalid || undefined} />
             )}
           </Field>
           {PHONE_AUTH_ENABLED && <button type="button" onClick={() => switchMethod("phone")} className={cn(linkCls, "justify-self-end text-[13px]")}>Utiliser un téléphone</button>}

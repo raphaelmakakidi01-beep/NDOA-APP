@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { Logo, ThemeToggle } from "@/components/brand";
+import { AuthAsideCopy, AuthAsideText } from "@/components/auth/auth-aside";
 
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
@@ -7,12 +9,9 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
       <aside className="hidden lg:sticky lg:top-0 lg:block lg:h-dvh">
         <div className="flex h-full flex-col justify-between bg-[linear-gradient(90deg,#8B4026_0%,#4A2418_62%,transparent_100%)] p-10 pr-28 text-[#F5F0E8]">
           <Logo variant="full" size="lg" on="dark" />
-          <div>
-            <p className="auth-rise max-w-md font-display text-[clamp(2.6rem,4vw,3.6rem)] leading-[1.02]" style={{ "--rise": "120ms" } as React.CSSProperties}>
-              Faites <em>briller</em> votre talent.
-            </p>
-            <p className="auth-rise mt-4 text-[15px] text-[#F5F0E8]/85" style={{ "--rise": "220ms" } as React.CSSProperties}>Gratuit, sans carte bancaire.</p>
-          </div>
+          <Suspense fallback={<AuthAsideCopy title={<>Bienvenue sur <em>NDOA</em> Wedding.</>} sub="Mariés ou prestataires, un seul compte." />}>
+            <AuthAsideText />
+          </Suspense>
         </div>
       </aside>
 

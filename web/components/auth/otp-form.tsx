@@ -180,7 +180,7 @@ function EmailLinkWait({ pending, cooldown, onResend }: { pending: Pending; cool
 
       <ol className="grid gap-2 rounded-2xl bg-surface-2 p-4 text-sm">
         <li>1. L’e-mail s’intitule « Confirm your email address » (vérifiez aussi les indésirables).</li>
-        <li>2. Ouvrez le lien <b>sur cet appareil, dans ce navigateur</b> : vous arriverez directement sur votre vitrine.</li>
+        <li>2. Ouvrez le lien <b>sur cet appareil, dans ce navigateur</b> : vous arriverez directement sur votre compte.</li>
         <li>3. Ouvert ailleurs ? Votre adresse sera quand même confirmée : connectez-vous ensuite.</li>
       </ol>
 

@@ -10,7 +10,7 @@ import { Field, Input } from "@/components/ui/field";
 import { DemoBanner } from "@/components/brand";
 import { GoogleButton, OrSeparator } from "./google-button";
 import { GOOGLE_AUTH_ENABLED, PHONE_AUTH_ENABLED } from "@/lib/config";
-import { requestPasswordReset, signIn } from "@/lib/auth";
+import { homeAfterLogin, requestPasswordReset, signIn } from "@/lib/auth";
 import { safeNext } from "@/lib/safe-redirect";
 
 /** Accepte un e-mail ou un numéro (local RDC ou international) */
@@ -57,21 +57,22 @@ export function LoginForm() {
     const r = await signIn({ identifier: normalizeIdentifier(identifier), password });
     setBusy(false);
     if (!r.ok) { setError(r.error); return; }
-    router.push(nextFromUrl());
+    // destination demandée (?suite=) sinon selon le type de compte
+    router.push(new URLSearchParams(location.search).get("suite") ? nextFromUrl() : await homeAfterLogin());
   }
 
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-4">
       <div className="mb-1">
         <h1 className="font-display text-[2rem] leading-[1.05] sm:text-[2.25rem]">Bon retour <em className="text-gold-ink">parmi nous</em></h1>
-        <p className="mt-1.5 text-[15px] text-muted">Retrouvez votre vitrine et vos demandes.</p>
+        <p className="mt-1.5 text-[15px] text-muted">Retrouvez vos favoris, vos demandes de devis ou votre vitrine.</p>
       </div>
       <Suspense fallback={null}><OAuthError /></Suspense>
       {GOOGLE_AUTH_ENABLED && <><GoogleButton next={nextFromUrl} /><OrSeparator /></>}
       <Field id="f-id" label={PHONE_AUTH_ENABLED ? "E-mail ou téléphone" : "E-mail"} error={error && !password ? error : undefined}>
         {({ id, describedBy, invalid }) => (
           <Input id={id} autoComplete="username" value={identifier} onChange={(e) => setIdentifier(e.target.value)}
-            placeholder={PHONE_AUTH_ENABLED ? "vous@studio.cd ou 81 234 5678" : "vous@studio.cd"} aria-describedby={describedBy} aria-invalid={invalid || undefined} />
+            placeholder={PHONE_AUTH_ENABLED ? "vous@exemple.com ou 81 234 5678" : "vous@exemple.com"} aria-describedby={describedBy} aria-invalid={invalid || undefined} />
         )}
       </Field>
       <Field id="f-pw" label="Mot de passe">
@@ -99,7 +100,7 @@ export function LoginForm() {
       </div>
       <Button type="submit" size="lg" loading={busy} className="mt-1 w-full">Se connecter</Button>
       <p className="text-center text-sm text-muted">
-        Pas encore de compte ? <Link href={signupHref} className="font-semibold text-gold-ink underline-offset-4 hover:underline">{signupHref.includes("couple") ? "Créer un compte" : "Créer ma vitrine"}</Link>
+        Pas encore de compte ? <Link href={signupHref} className="font-semibold text-gold-ink underline-offset-4 hover:underline">Créer un compte</Link>
       </p>
       <DemoBanner className="justify-center">Utilisez l’identifiant choisi à l’inscription.</DemoBanner>
     </form>
