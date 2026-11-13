@@ -46,7 +46,7 @@ export function PartnersCarousel({ partners }: { partners: Partner[] }) {
       <span className="pc-serif-probe" aria-hidden="true" />
       <div className="pc-stage">
         {fonts && (
-          <WarpCarousel cards={cards} font={fonts.sans} serif={fonts.serif} background="#0A0A0B" glow="#C4975A"
+          <WarpCarousel cards={cards} font={fonts.sans} serif={fonts.serif} background="#0A0A0B" glow="#C4975A" interval={3}
             onIndexChange={setActive} onFrontClick={open} ariaLabel="Publicités de nos partenaires : glissez ou utilisez les flèches" />
         )}
       </div>

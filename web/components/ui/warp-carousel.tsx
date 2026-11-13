@@ -1026,7 +1026,8 @@ export function WarpCarousel({
       if (disposed || !L.visible) return;
       const now = performance.now() / 1000;
       const p = props.current;
-      const auto = p.autoplay && !p.reduced && p.realCount > 1;
+      // l'anneau tourne aussi avec une seule carte (répétée pour le remplir)
+      const auto = p.autoplay && !p.reduced;
       if (auto && L.mode !== "drag" && L.mode !== "spring" && now >= L.nextAuto) {
         L.nextAuto = Math.max(L.nextAuto + p.gap, now + p.gap * 0.5);
         L.autoPending = true;
@@ -1049,7 +1050,8 @@ export function WarpCarousel({
       L.n = STEP_FRAMES;
       L.mode = "spin";
       L.P = L.from + (L.to - L.from) * spin(REST_PHASE);
-      L.nextAuto = t0 + LEAD + props.current.gap;
+      // l'ouverture se termine en ~1 s ; la première rotation part `gap` secondes après l'affichage
+      L.nextAuto = t0 + Math.max(LEAD, props.current.gap);
     } else {
       L.nextAuto = t0 + props.current.gap;
     }
