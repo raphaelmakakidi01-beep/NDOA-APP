@@ -162,7 +162,7 @@ export async function getHome(): Promise<Home> {
 /* Profil                                                               */
 /* ------------------------------------------------------------------ */
 const PROFILE_SELECT = [
-  "id, slug, name, tagline, bio, style_tags, city, zones, languages, avatar_path, phone, whatsapp, details, socials, is_verified, is_recommended",
+  "id, slug, name, tagline, bio, style_tags, city, zones, languages, avatar_path, details, socials, is_verified, is_recommended",
   "rating_avg, rating_count, followers_count, response_minutes",
   "cover:media!vendors_cover_fk(storage_path, poster_path, kind, status, is_hidden)",
   "vendor_categories(is_primary, categories(slug, name, name_plural, detail_schema))",
@@ -184,10 +184,11 @@ export async function getProfile(slug: string): Promise<Profile | null> {
   if (DEMO) return demoProfile(slug);
   const c = sb();
   if (!c) return null;
-  const [{ data, error }, avail, card] = await Promise.all([
+  const [{ data, error }, avail, card, contact] = await Promise.all([
     c.from("vendors").select(PROFILE_SELECT).eq("slug", slug).eq("status", "published").maybeSingle(),
     c.rpc("get_public_availability", { p_vendor_slug: slug }),
     getDirectory().then((all) => all.find((v) => v.slug === slug)),
+    getContact(slug),
   ]);
   if (error) console.error("profil", error.message);
   const r = data as Row | null;
@@ -245,7 +246,7 @@ export async function getProfile(slug: string): Promise<Profile | null> {
     }).filter((h) => h.frames.length),
     availability,
     response: rm == null ? "" : rm < 60 ? "moins d’une heure" : `moins de ${Math.ceil(rm / 60)} h`,
-    hasPhone: !!s(r.phone), hasWhatsapp: !!(s(r.whatsapp) || s(r.phone)),
+    hasPhone: !!contact?.phone, hasWhatsapp: !!contact?.whatsapp,
     coverVideo: cover && cover.kind === "video" && cover.status === "ready" && !cover.is_hidden && isVideoCategory(s(pc?.slug)) && file(cover.storage_path)
       ? { src: file(cover.storage_path), poster: file(cover.poster_path) || coverImage } : null,
     location: isLocationCategory(s(pc?.slug)) ? parseCoords(d.coordonnees) : null,
@@ -259,7 +260,9 @@ export async function getProfile(slug: string): Promise<Profile | null> {
 /** Numéros d'un prestataire : jamais dans la page, demandés au clic (route /api/prestataires/[slug]/contact) */
 export async function getContact(slug: string) {
   if (DEMO) return { phone: "+243 000 000 000", whatsapp: "243000000000" };
-  const { data } = (await sb()?.from("vendors").select("phone, whatsapp").eq("slug", slug).eq("status", "published").maybeSingle()) ?? {};
+  // numéros lus un par un via vendor_contact() : la table n’expose plus ces colonnes aux visiteurs
+  const { data: rows } = (await sb()?.rpc("vendor_contact", { p_slug: slug })) ?? {};
+  const data = (rows as { phone: string | null; whatsapp: string | null }[] | null)?.[0];
   if (!data) return null;
   return { phone: s(data.phone), whatsapp: (s(data.whatsapp) || s(data.phone)).replace(/\D/g, "") };
 }
