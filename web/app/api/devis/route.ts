@@ -60,3 +60,18 @@ export async function POST(req: NextRequest) {
   }
   return NextResponse.json({ ok: true, id: data });
 }
+
+/**
+ * Contrôle de configuration (aucune donnée créée) : le chemin serveur des devis fonctionne-t-il ?
+ * Appelle submit_inquiry_server sur une vitrine inexistante : VENDOR_NOT_FOUND prouve que la clé
+ * serveur est valide et que la fonction répond. Ne renvoie qu'un booléen.
+ */
+export async function GET() {
+  const service = getServiceSupabase();
+  if (!service) return NextResponse.json({ serveur: false }, { headers: { "Cache-Control": "no-store" } });
+  const { error } = await service.rpc("submit_inquiry_server", {
+    p_couple_user: null, p_vendor_slug: "zz-controle-inexistant", p_couple_names: "Controle", p_email: null, p_phone: "+243810000000",
+    p_contact_pref: "whatsapp", p_wedding_date: null, p_city: null, p_guests: null, p_package_id: null, p_option_ids: null, p_message: null, p_source: "controle",
+  });
+  return NextResponse.json({ serveur: !!error?.message.includes("VENDOR_NOT_FOUND") }, { headers: { "Cache-Control": "no-store" } });
+}
