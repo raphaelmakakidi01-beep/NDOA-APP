@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { DEMO } from "@/lib/config";
 import { clientIp, rateLimited, verifyTurnstile } from "@/lib/public/guard";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getServiceSupabase } from "@/lib/supabase/service";
 
 /*
  * Demande de devis SANS compte. Anti-spam : Cloudflare Turnstile + limite par IP ici,
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
   const sb = await getServerSupabase();
   if (!sb) return NextResponse.json({ error: "Service indisponible." }, { status: 503 });
   const date = str(b.date, 10);
-  const { data, error } = await sb.rpc("submit_inquiry", {
+  const args = {
     p_vendor_slug: str(b.slug, 80), p_couple_names: str(b.names, 80), p_email: str(b.email, 120) || null, p_phone: phone,
     p_contact_pref: ["whatsapp", "call", "email"].includes(String(b.pref)) ? b.pref : "whatsapp",
     p_wedding_date: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null, p_city: str(b.city, 60) || null,
@@ -46,7 +47,13 @@ export async function POST(req: NextRequest) {
     p_package_id: typeof b.packageId === "string" && /^[0-9a-f-]{36}$/.test(b.packageId) ? b.packageId : null,
     p_option_ids: Array.isArray(b.optionIds) ? b.optionIds.filter((x) => typeof x === "string" && /^[0-9a-f-]{36}$/.test(x)).slice(0, 20) : null,
     p_message: message || null, p_source: str(b.source, 30) || "profil",
-  });
+  };
+  // Avec la clé serveur : chemin réservé au site (submit_inquiry_server), fermé au public.
+  // Le compte couple éventuel est lu ici, depuis la session vérifiée.
+  const service = getServiceSupabase();
+  const { data, error } = service
+    ? await service.rpc("submit_inquiry_server", { p_couple_user: (await sb.auth.getUser()).data.user?.id ?? null, ...args })
+    : await sb.rpc("submit_inquiry", args);
   if (error) {
     const key = Object.keys(MESSAGES).find((k) => error.message.includes(k));
     return NextResponse.json({ error: key ? MESSAGES[key] : "L’envoi a échoué. Vérifiez votre connexion et réessayez." }, { status: key === "RATE_LIMITED" ? 429 : 400 });
