@@ -74,5 +74,6 @@ export async function GET() {
     p_couple_user: null, p_vendor_slug: "zz-controle-inexistant", p_couple_names: "Controle", p_email: null, p_phone: "+243810000000",
     p_contact_pref: "whatsapp", p_wedding_date: null, p_city: null, p_guests: null, p_package_id: null, p_option_ids: null, p_message: null, p_source: "controle",
   });
-  return NextResponse.json({ serveur: !!error?.message.includes("VENDOR_NOT_FOUND") }, { headers: { "Cache-Control": "no-store" } });
+  // ACCOUNT_REQUIRED / VENDOR_NOT_FOUND ne peuvent venir qu'après le contrôle SERVER_ONLY : la clé serveur fonctionne
+  return NextResponse.json({ serveur: /ACCOUNT_REQUIRED|VENDOR_NOT_FOUND/.test(error?.message ?? "") }, { headers: { "Cache-Control": "no-store" } });
 }
