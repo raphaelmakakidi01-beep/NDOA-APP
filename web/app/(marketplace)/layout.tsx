@@ -13,7 +13,7 @@ import "./marketplace-extra.css";
 import "./assistant.css";
 
 const SHARE_TITLE = "NDOA Wedding — Trouvez les prestataires de votre mariage en RDC";
-const SHARE_TEXT = "Photographes, salles, traiteurs, DJ, décorateurs… Comparez les talents et demandez vos devis gratuitement, sans créer de compte.";
+const SHARE_TEXT = "Photographes, salles, traiteurs, DJ, décorateurs… Comparez les talents et demandez vos devis gratuitement.";
 
 export const metadata: Metadata = {
   title: { absolute: "NDOA Wedding — Les meilleurs prestataires de mariage en RDC", template: "%s | NDOA Wedding" },

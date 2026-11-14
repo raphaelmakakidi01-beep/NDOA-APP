@@ -106,7 +106,7 @@ function DirTitle({ cat }: { cat?: Category }) {
     return (
       <>
         <h1 className="display" id="dir-title">Tous les <em className="gold-text">prestataires</em></h1>
-        <p>Comparez les vitrines, les tarifs et les avis, puis demandez vos devis gratuitement, sans créer de compte.</p>
+        <p>Comparez les vitrines, les tarifs et les avis, puis demandez vos devis gratuitement.</p>
       </>
     );
   }
@@ -114,7 +114,7 @@ function DirTitle({ cat }: { cat?: Category }) {
     <header className="dir-cover">
       <Image src={cat.image} alt="" fill priority sizes="(max-width: 1360px) 100vw, 1360px" />
       <h1 className="display" id="dir-title">{cat.plural}</h1>
-      <p>Comparez les {cat.plural.toLowerCase()}, leurs tarifs et leurs avis, puis demandez vos devis gratuitement, sans créer de compte.</p>
+      <p>Comparez les {cat.plural.toLowerCase()}, leurs tarifs et leurs avis, puis demandez vos devis gratuitement.</p>
     </header>
   );
 }

@@ -182,7 +182,7 @@ export default async function Accueil() {
             <div className="steps-line" aria-hidden="true"><i /></div>
             {[
               ["Explorez & ", "inspirez-vous", "Parcourez les prestataires, les stories et nos sélections. Filtrez par ville, budget et note pour trouver votre style.", <><circle key="a" cx="11" cy="11" r="7" /><path key="b" d="m20 20-3.5-3.5M8 11h6M11 8v6" /></>],
-              ["Demandez ", "vos devis", "Un formulaire, sans créer de compte : date, lieu, nombre d’invités. Le prestataire vous répond directement.", <><path key="a" d="M4 5h16v11H8l-4 4z" /><path key="b" d="M8 10h8M8 13h5" /></>],
+              ["Demandez ", "vos devis", "Avec votre compte gratuit : date, lieu, nombre d’invités. Le prestataire vous répond, une cloche vous prévient.", <><path key="a" d="M4 5h16v11H8l-4 4z" /><path key="b" d="M8 10h8M8 13h5" /></>],
               ["Réservez & ", "brillez", "Comparez les réponses, bloquez la date. Le jour J, il ne vous reste qu’à profiter.", <path key="a" d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z" />],
             ].map(([a, b, p, icon], i) => (
               <article className="step" key={i}>

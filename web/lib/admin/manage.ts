@@ -354,7 +354,7 @@ const demoPages: SitePage[] = [
   { slug: "mentions-legales", title: "Mentions légales", body: "", isPublished: false },
 ];
 const demoFaqs: Faq[] = [
-  { id: "f1", audience: "couples", question: "La demande de devis est-elle gratuite ?", answer: "Oui. Envoyer une demande est gratuit et sans engagement, sans créer de compte.", sort: 1, isPublished: true },
+  { id: "f1", audience: "couples", question: "La demande de devis est-elle gratuite ?", answer: "Oui. Envoyer une demande est gratuit et sans engagement. Un compte couple gratuit est demandé pour suivre les réponses.", sort: 1, isPublished: true },
   { id: "f2", audience: "couples", question: "Comment sont vérifiés les prestataires ?", answer: "Chaque vitrine est relue par l’équipe NDOA avant sa mise en ligne. Le badge Vérifié signale les prestataires dont l’identité a été contrôlée.", sort: 2, isPublished: true },
   { id: "f3", audience: "prestataires", question: "Combien coûte une vitrine ?", answer: "L’offre Gratuit permet de publier une vitrine complète. Les offres Pro et Prestige ajoutent vidéos, stories et statistiques avancées.", sort: 3, isPublished: true },
 ];

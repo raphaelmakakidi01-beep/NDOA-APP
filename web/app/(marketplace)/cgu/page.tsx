@@ -20,7 +20,7 @@ function CguDefault() {
       <h2>1. Objet</h2>
       <p>NDOA Wedding est une plateforme de mise en relation entre des couples qui préparent leur mariage et des prestataires de services (photographes, salles, traiteurs, etc.) en République démocratique du Congo. Elle est éditée par <Todo>raison sociale</Todo>, <Todo>forme juridique</Todo>, RCCM <Todo>numéro</Todo>, Id. Nat. <Todo>numéro</Todo>, dont le siège est situé <Todo>adresse</Todo>.</p>
       <h2>2. Accès au service</h2>
-      <p>La consultation des prestataires et l’envoi de demandes de devis sont gratuits pour les couples, sans compte. Le compte couple (favoris, prestataires suivis, historique des demandes) est facultatif. L’espace prestataire nécessite la création d’un compte.</p>
+      <p>La consultation des prestataires est libre et gratuite. L’envoi d’une demande de devis est gratuit et nécessite un compte couple, qui regroupe les demandes, les échanges avec les prestataires, les favoris et les prestataires suivis. L’espace prestataire nécessite la création d’un compte.</p>
       <h2>3. Rôle de NDOA Wedding</h2>
       <p>NDOA Wedding n’est pas partie aux contrats conclus entre couples et prestataires. Les prix, prestations et conditions sont fixés librement par chaque prestataire, qui en reste seul responsable.</p>
       <h2>4. Comptes prestataires et contenus</h2>

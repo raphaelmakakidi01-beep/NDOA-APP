@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { coupleLoginUrl, coupleSignupUrl, useCouple } from "@/lib/public/couple";
 import type { Package } from "@/lib/public/types";
 import { fmt } from "./format";
 import { Close } from "./icons";
@@ -36,14 +38,18 @@ function useTurnstile(active: boolean) {
   return { box, token, needed: !!SITE_KEY, reset: () => { if (id.current) window.turnstile?.reset(id.current); setToken(""); } };
 }
 
-/** Demande de devis sans compte, en 3 étapes (date et lieu, besoins, coordonnées) */
+/** Demande de devis en 3 étapes (date et lieu, besoins, coordonnées). Compte « marié » obligatoire :
+ *  sans compte, la fenêtre propose de le créer puis revient ici (?devis=) et rouvre le formulaire. */
 export function QuoteProvider({ vendor, children, defaultDate }: { vendor: Vendor; children: React.ReactNode; defaultDate?: string }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [plan, setPlan] = useState<number>(() => Math.max(0, vendor.packages.findIndex((p) => p.featured)));
   const [err, setErr] = useState("");
   const [sending, setSending] = useState(false);
-  const [done, setDone] = useState<{ when: string } | null>(null);
+  const [done, setDone] = useState<{ when: string; id?: string } | null>(null);
+  const couple = useCouple();
+  const [gate, setGate] = useState(false);
+  const [back, setBack] = useState("/");
   const form = useRef<HTMLFormElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const opener = useRef<HTMLElement | null>(null);
@@ -53,9 +59,11 @@ export function QuoteProvider({ vendor, children, defaultDate }: { vendor: Vendo
   const openQuote = useCallback((p?: number) => {
     opener.current = document.activeElement as HTMLElement;
     if (p !== undefined) setPlan(p);
+    setBack(`${location.pathname}?devis=${p ?? ""}`);
+    setGate(couple.ready && !couple.userId);
     if (done) { setDone(null); setStep(0); form.current?.reset(); }
     setErr(""); setOpen(true);
-  }, [done]);
+  }, [done, couple.ready, couple.userId]);
   const close = useCallback(() => { setOpen(false); opener.current?.focus(); }, []);
 
   useEffect(() => {
@@ -74,6 +82,29 @@ export function QuoteProvider({ vendor, children, defaultDate }: { vendor: Vendo
     setTimeout(() => box.current?.querySelector<HTMLElement>(".qstep.on input, .qstep.on select, .qstep.on h3[tabindex]")?.focus(), 60);
     return () => { document.removeEventListener("keydown", key); document.documentElement.style.overflow = ""; };
   }, [open, step, close]);
+
+  // retour après connexion / inscription : le formulaire se rouvre tout seul
+  useEffect(() => {
+    if (!couple.ready || !couple.userId) return;
+    const q = new URLSearchParams(location.search);
+    if (!q.has("devis")) return;
+    const raw = q.get("devis") ?? "";
+    q.delete("devis");
+    history.replaceState(null, "", location.pathname + (q.size ? `?${q}` : "") + location.hash);
+    const p = Number(raw);
+    openQuote(raw !== "" && Number.isInteger(p) && p >= -1 && p < vendor.packages.length ? p : undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- une seule fois, quand le compte est connu
+  }, [couple.ready, couple.userId]);
+
+  // coordonnées du compte pré-remplies (modifiables)
+  useEffect(() => {
+    const pr = couple.profile;
+    if (!pr || !form.current) return;
+    for (const [name, v] of [["names", pr.name], ["phone", pr.phone], ["email", pr.email]] as const) {
+      const el = form.current.elements.namedItem(name) as HTMLInputElement | null;
+      if (el && !el.value && v) el.value = v;
+    }
+  }, [couple.profile, open]);
 
   const field = (name: string) => form.current?.elements.namedItem(name) as HTMLInputElement | null;
   function validate(n: number) {
@@ -114,8 +145,9 @@ export function QuoteProvider({ vendor, children, defaultDate }: { vendor: Vendo
       }),
     }).then((r) => r.json()).catch(() => ({ error: "L’envoi a échoué. Vérifiez votre connexion et réessayez." }));
     setSending(false);
+    if (res.login) { setGate(true); return; }
     if (res.error) { setErr(res.error); tsReset(); return; }
-    setDone({ when: new Date(`${fd.get("date")}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) });
+    setDone({ id: res.id, when: new Date(`${fd.get("date")}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) });
     setStep(3);
   }
 
@@ -130,6 +162,21 @@ export function QuoteProvider({ vendor, children, defaultDate }: { vendor: Vendo
             <div className="t"><small>Demande de devis</small><strong id="qmTitle">{vendor.name}</strong></div>
             <button className="qm-close" aria-label="Fermer la demande de devis" onClick={close}><Close /></button>
           </div>
+          {gate ? (
+            <div className="qm-body qm-gate">
+              <h3>Créez votre <em>compte marié</em></h3>
+              <p>Un compte gratuit est nécessaire pour demander un devis. Vous y retrouvez vos demandes, les réponses de {vendor.name} et une notification à chaque nouveau message.</p>
+              <ul className="qm-gate-list">
+                <li>Gratuit, en une minute</li>
+                <li>Vos échanges restent privés entre vous et le prestataire</li>
+                <li>Vous revenez ici ensuite : le formulaire s’ouvre tout seul</li>
+              </ul>
+              <div className="qm-gate-actions">
+                <Link className="btn btn-gold" href={coupleSignupUrl(back)}>Créer mon compte <span className="arrow">→</span></Link>
+                <Link className="btn btn-ghost" href={coupleLoginUrl(back)}>J’ai déjà un compte</Link>
+              </div>
+            </div>
+          ) : <>
           {step < 3 && (
             <ol className="qm-steps" aria-label="Étapes">
               {steps.map((s, i) => <li key={s} className={i < step ? "done" : i === step ? "cur" : ""} aria-current={i === step ? "step" : undefined}><i />{s}</li>)}
@@ -173,7 +220,7 @@ export function QuoteProvider({ vendor, children, defaultDate }: { vendor: Vendo
               </section>
               <section className={`qstep${step === 2 ? " on" : ""}`}>
                 <h3>Vos <em>coordonnées</em></h3>
-                <p>Le prestataire vous répond directement. Aucun compte à créer, aucun frais, aucun engagement.</p>
+                <p>Le prestataire vous répond dans votre compte NDOA, et par WhatsApp, appel ou e-mail selon votre choix. Aucun frais, aucun engagement.</p>
                 <div className="qgrid two">
                   <label className="qf"><span>Votre nom</span><input type="text" name="names" maxLength={80} placeholder="Grâce & Patrick" autoComplete="name" required /></label>
                   <label className="qf"><span>Téléphone / WhatsApp</span><input type="tel" name="phone" maxLength={30} placeholder="+243 …" autoComplete="tel" required /></label>
@@ -190,7 +237,8 @@ export function QuoteProvider({ vendor, children, defaultDate }: { vendor: Vendo
                       <circle className="ring" cx="60" cy="60" r="54" pathLength={1} transform="rotate(-90 60 60)" /><path className="check" pathLength={1} d="M40 61l14 14 27-29" /></svg>
                   </div>
                   <h3 className="display" tabIndex={-1}>Demande <em>envoyée.</em></h3>
-                  <p>{vendor.name} a bien reçu votre demande{vendor.response ? ` et répond en général en ${vendor.response}` : ""}{done ? ` pour le ${done.when}` : ""}.</p>
+                  <p>{vendor.name} a bien reçu votre demande{vendor.response ? ` et répond en général en ${vendor.response}` : ""}{done ? ` pour le ${done.when}` : ""}. Vous serez prévenu de sa réponse par la cloche en haut de la page.</p>
+                  <Link className="btn btn-ghost" href={done?.id ? `/mon-compte?demande=${done.id}` : "/mon-compte?onglet=demandes"} style={{ marginTop: 14 }}>Suivre ma demande</Link>
                 </div>
               </section>
             </div>
@@ -203,6 +251,7 @@ export function QuoteProvider({ vendor, children, defaultDate }: { vendor: Vendo
             </div>
             {step < 3 && <p className="qm-note">Gratuit et sans engagement · Vos coordonnées ne sont transmises qu’à ce prestataire.</p>}
           </form>
+          </>}
         </div>
       </div>
     </QuoteCtx.Provider>

@@ -5,9 +5,9 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { getServiceSupabase } from "@/lib/supabase/service";
 
 /*
- * Demande de devis SANS compte. Anti-spam : Cloudflare Turnstile + limite par IP ici,
- * puis submit_inquiry (base) qui valide les champs et applique ses propres limites.
- * Si le visiteur est connecté (compte couple), la demande est rattachée à son compte (historique).
+ * Demande de devis : compte « marié » obligatoire. Anti-spam : Cloudflare Turnstile + limite par IP ici,
+ * puis submit_inquiry_server (base, clé serveur) qui exige le compte, valide les champs et applique ses limites.
+ * La demande est rattachée au compte : le couple y retrouve les réponses du prestataire (« Mon compte »).
  */
 const MESSAGES: Record<string, string> = {
   RATE_LIMITED: "Vous avez déjà envoyé plusieurs demandes à ce prestataire aujourd’hui. Il vous répondra très vite.",
@@ -17,6 +17,7 @@ const MESSAGES: Record<string, string> = {
   PHONE_INVALID: "Le numéro de téléphone semble incorrect.",
   NAMES_INVALID: "Indiquez votre nom (2 caractères minimum).",
   VENDOR_NOT_FOUND: "Ce prestataire n’accepte plus de demandes pour le moment.",
+  ACCOUNT_REQUIRED: "Connectez-vous à votre compte pour envoyer une demande de devis.",
 };
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
@@ -38,6 +39,8 @@ export async function POST(req: NextRequest) {
 
   const sb = await getServerSupabase();
   if (!sb) return NextResponse.json({ error: "Service indisponible." }, { status: 503 });
+  const user = (await sb.auth.getUser()).data.user;
+  if (!user) return NextResponse.json({ error: MESSAGES.ACCOUNT_REQUIRED, login: true }, { status: 401 });
   const date = str(b.date, 10);
   const args = {
     p_vendor_slug: str(b.slug, 80), p_couple_names: str(b.names, 80), p_email: str(b.email, 120) || null, p_phone: phone,
@@ -48,15 +51,13 @@ export async function POST(req: NextRequest) {
     p_option_ids: Array.isArray(b.optionIds) ? b.optionIds.filter((x) => typeof x === "string" && /^[0-9a-f-]{36}$/.test(x)).slice(0, 20) : null,
     p_message: message || null, p_source: str(b.source, 30) || "profil",
   };
-  // Avec la clé serveur : chemin réservé au site (submit_inquiry_server), fermé au public.
-  // Le compte couple éventuel est lu ici, depuis la session vérifiée.
+  // Chemin réservé au site (clé serveur) ; le compte vient de la session vérifiée ci-dessus
   const service = getServiceSupabase();
-  const { data, error } = service
-    ? await service.rpc("submit_inquiry_server", { p_couple_user: (await sb.auth.getUser()).data.user?.id ?? null, ...args })
-    : await sb.rpc("submit_inquiry", args);
+  if (!service) return NextResponse.json({ error: "Service indisponible." }, { status: 503 });
+  const { data, error } = await service.rpc("submit_inquiry_server", { p_couple_user: user.id, ...args });
   if (error) {
     const key = Object.keys(MESSAGES).find((k) => error.message.includes(k));
-    return NextResponse.json({ error: key ? MESSAGES[key] : "L’envoi a échoué. Vérifiez votre connexion et réessayez." }, { status: key === "RATE_LIMITED" ? 429 : 400 });
+    return NextResponse.json({ error: key ? MESSAGES[key] : "L’envoi a échoué. Vérifiez votre connexion et réessayez.", login: key === "ACCOUNT_REQUIRED" || undefined }, { status: key === "RATE_LIMITED" ? 429 : key === "ACCOUNT_REQUIRED" ? 401 : 400 });
   }
   return NextResponse.json({ ok: true, id: data });
 }

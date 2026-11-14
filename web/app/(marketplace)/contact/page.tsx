@@ -14,9 +14,9 @@ const ENV_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
 
 /** FAQ par défaut, remplacée par celle publiée depuis l'admin (Pages et contenus) */
 const FAQ_DEFAULT: [string, string][] = [
-  ["NDOA Wedding est-il gratuit pour les mariés ?", "Oui. Rechercher des prestataires, comparer leurs tarifs et envoyer des demandes de devis est entièrement gratuit, sans engagement et sans créer de compte."],
-  ["Comment fonctionne une demande de devis ?", "Depuis le profil d’un prestataire, choisissez « Demander un devis » et indiquez la date, le lieu, le nombre d’invités et votre numéro. Le prestataire reçoit votre demande et vous répond par WhatsApp, téléphone ou e-mail selon votre préférence."],
-  ["À quoi sert le compte couple ?", "Il est facultatif : il garde vos favoris, les prestataires que vous suivez et l’historique de vos demandes de devis."],
+  ["NDOA Wedding est-il gratuit pour les mariés ?", "Oui. Rechercher des prestataires, comparer leurs tarifs et envoyer des demandes de devis est entièrement gratuit et sans engagement. Un compte gratuit est demandé pour envoyer un devis : vous y suivez les réponses des prestataires."],
+  ["Comment fonctionne une demande de devis ?", "Depuis le profil d’un prestataire, choisissez « Demander un devis », connectez-vous à votre compte (ou créez-le, c’est gratuit) et indiquez la date, le lieu, le nombre d’invités et votre numéro. Le prestataire vous répond dans « Mon compte », où une cloche vous prévient de chaque réponse, et par WhatsApp, téléphone ou e-mail selon votre préférence."],
+  ["À quoi sert le compte couple ?", "Il est nécessaire pour demander un devis. Il garde vos demandes et les échanges avec les prestataires, vos favoris et les prestataires que vous suivez. Personne d’autre que vous et le prestataire concerné ne peut lire vos échanges."],
   ["Comment les prestataires sont-ils vérifiés ?", "Chaque vitrine est relue par l’équipe NDOA avant sa mise en ligne. Le badge « Vérifié » est attribué après contrôle de l’identité, des coordonnées et des réalisations. Les avis ne peuvent être déposés que par des mariés ayant reçu un lien de leur prestataire."],
   ["Je suis prestataire : comment apparaître sur NDOA ?", "Créez votre vitrine en quelques minutes : vos réalisations, votre premier forfait et vos contacts suffisent. La création et la publication de votre vitrine sont gratuites."],
   ["Comment signaler un problème avec un prestataire ou un avis ?", "Écrivez-nous en précisant le nom du prestataire. Chaque signalement est examiné par l’équipe de modération."],

@@ -14,6 +14,7 @@ import { signUp, type Channel } from "@/lib/auth";
 import { GOOGLE_AUTH_ENABLED, PHONE_AUTH_ENABLED } from "@/lib/config";
 import { passwordRules, signupSchema, toE164, toFieldErrors, type FieldErrors } from "@/lib/validation";
 import { cn } from "@/lib/utils";
+import { safeNext } from "@/lib/safe-redirect";
 
 const linkCls = "font-semibold text-gold-ink underline-offset-4 hover:underline";
 
@@ -30,10 +31,16 @@ export function SignupForm() {
   const [terms, setTerms] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [busy, setBusy] = useState(false);
-  // ?compte=couple : compte facultatif des mariés (favoris, suivis, historique) au lieu d’une vitrine
+  // ?compte=couple : compte des mariés (devis, favoris, suivis) au lieu d’une vitrine ; ?suite= : page de retour
   const [couple, setCouple] = useState(false);
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture unique de l’adresse au montage
-  useEffect(() => { setCouple(new URLSearchParams(location.search).get("compte") === "couple"); }, []);
+  const [suite, setSuite] = useState<string | null>(null);
+  useEffect(() => {
+    const q = new URLSearchParams(location.search);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture unique de l’adresse au montage
+    setCouple(q.get("compte") === "couple");
+    setSuite(q.get("suite"));
+  }, []);
+  const coupleNext = safeNext(suite, "/mon-compte");
 
   const missing = passwordRules.filter((r) => !r.test(password));
   const strength = passwordRules.length - missing.length;
@@ -47,7 +54,7 @@ export function SignupForm() {
   /** Couple ou prestataire : l'adresse suit le choix (lien partageable, retour arrière cohérent) */
   const chooseType = (v: boolean) => {
     setCouple(v);
-    window.history.replaceState(null, "", v ? "/inscription?compte=couple" : "/inscription");
+    window.history.replaceState(null, "", v ? `/inscription?compte=couple${suite ? `&suite=${encodeURIComponent(suite)}` : ""}` : "/inscription");
   };
 
   async function onSubmit(e: React.FormEvent) {
@@ -65,7 +72,7 @@ export function SignupForm() {
       method, fullName: fullName.trim(), password, channel,
       email: method === "email" ? email.trim().toLowerCase() : undefined,
       phone: method === "phone" ? toE164(country, phone) : undefined,
-      next: couple ? "/mon-compte" : undefined,
+      next: couple ? coupleNext : undefined,
       accountType: couple ? "couple" : "prestataire",
     });
     setBusy(false);
@@ -86,10 +93,10 @@ export function SignupForm() {
       </div>
       <div className="mb-1">
         <h1 className="font-display text-[2.25rem] leading-[1.05] sm:text-[2.6rem]">{couple ? <>Créez votre <em className="text-gold-ink">compte</em></> : <>Bienvenue, créons votre <em className="text-gold-ink">vitrine</em></>}</h1>
-        <p className="mt-2 text-[15px] leading-relaxed text-muted">{couple ? "Gratuit : gardez vos prestataires favoris, suivez leurs réalisations et retrouvez vos demandes de devis." : "Quelques informations suffisent pour commencer. C’est gratuit et sans carte bancaire."}</p>
+        <p className="mt-2 text-[15px] leading-relaxed text-muted">{couple ? "Gratuit : demandez vos devis, échangez avec les prestataires et gardez vos favoris au même endroit." : "Quelques informations suffisent pour commencer. C’est gratuit et sans carte bancaire."}</p>
       </div>
 
-      {GOOGLE_AUTH_ENABLED && <><GoogleButton /><OrSeparator /></>}
+      {GOOGLE_AUTH_ENABLED && <><GoogleButton next={couple ? coupleNext : undefined} /><OrSeparator /></>}
 
       <Field id="f-fullName" label="Nom complet" error={errors.fullName}>
         {({ describedBy, invalid }) => (
@@ -171,7 +178,7 @@ export function SignupForm() {
 
       <Button type="submit" size="lg" loading={busy} className="mt-1 w-full">{couple ? "Créer mon compte" : <>Commencer ma vitrine <ArrowRight aria-hidden /></>}</Button>
       <p className="text-center text-sm text-muted">
-        Déjà inscrit ? <Link href={couple ? "/connexion?suite=/mon-compte&compte=couple" : "/connexion"} className={linkCls}>Se connecter</Link>
+        Déjà inscrit ? <Link href={couple ? `/connexion?suite=${encodeURIComponent(coupleNext)}&compte=couple` : "/connexion"} className={linkCls}>Se connecter</Link>
       </p>
       <DemoBanner className="justify-center">Code de vérification : <b>123456</b>.</DemoBanner>
     </form>
